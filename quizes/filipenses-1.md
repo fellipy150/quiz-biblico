@@ -1,4 +1,4 @@
-# 📖 Quiz de Estudo: Filipenses Capítulo 1
+# Filipenses Capítulo 1
 
 ## 1. Quem são citados como remetentes (autores) logo na saudação da carta (v. 1)?
 - Paulo e Silas
