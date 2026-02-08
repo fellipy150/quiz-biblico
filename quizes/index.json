@@ -1,6 +1,6 @@
 [
-  { "arquivo": "genesis", "titulo": "Gênesis" },
-  { "arquivo": "evangelhos", "titulo": "Evangelhos" },
-  { "arquivo": "atos", "titulo": "Atos dos Apóstolos" },
-  { "arquivo": "apocalipse", "titulo": "Apocalipse" }
+  {
+    "arquivo": "genesis",
+    "titulo": "genesis"
+  }
 ]
