@@ -1,28 +1,62 @@
-const params = new URLSearchParams(window.location.search);
-const quizNome = params.get("quiz");
+// Detecta em qual página estamos
+const isIndex = document.getElementById("lista-quizes");
+const isQuiz = document.getElementById("quiz");
 
-if (!quizNome) {
-  document.body.innerHTML = "<p>Quiz não encontrado 😢</p>";
-  throw new Error("Quiz não informado");
+// =======================
+// INDEX.HTML (menu)
+// =======================
+if (isIndex) {
+  fetch("quizes/index.json")
+    .then(res => res.json())
+    .then(quizes => {
+      quizes.forEach(q => {
+        const li = document.createElement("li");
+        li.innerHTML = `<a href="quiz.html?quiz=${q.arquivo}">${q.titulo}</a>`;
+        isIndex.appendChild(li);
+      });
+    })
+    .catch(() => {
+      isIndex.innerHTML = "<li>Erro ao carregar quizzes 😢</li>";
+    });
 }
 
-fetch(`quizes/${quizNome}.md`)
-  .then(res => {
-    if (!res.ok) throw new Error("Arquivo não encontrado");
-    return res.text();
-  })
-  .then(texto => {
-    document.getElementById("titulo").innerText =
-      `Quiz: ${quizNome.charAt(0).toUpperCase() + quizNome.slice(1)}`;
-    parsePerguntas(texto);
-    montarQuiz();
-  })
-  .catch(() => {
-    document.body.innerHTML = "<p>Erro ao carregar o quiz 😢</p>";
-  });
+// =======================
+// QUIZ.HTML (quiz)
+// =======================
+if (isQuiz) {
+  const params = new URLSearchParams(window.location.search);
+  const quizNome = params.get("quiz");
 
-const quizDiv = document.getElementById("quiz");
+  if (!quizNome) {
+    document.body.innerHTML = "<p>Quiz não informado 😢</p>";
+    throw new Error("Quiz não informado");
+  }
+
+  fetch(`quizes/${quizNome}.md`)
+    .then(res => {
+      if (!res.ok) throw new Error("Arquivo não encontrado");
+      return res.text();
+    })
+    .then(texto => iniciarQuiz(texto))
+    .catch(() => {
+      document.body.innerHTML = "<p>Erro ao carregar o quiz 😢</p>";
+    });
+}
+
 let perguntas = [];
+
+function iniciarQuiz(md) {
+  const linhas = md.split("\n");
+
+  // Título do quiz (# ...)
+  if (linhas[0].startsWith("# ")) {
+    document.getElementById("titulo").innerText =
+      linhas[0].replace("# ", "").trim();
+  }
+
+  parsePerguntas(md);
+  montarQuiz();
+}
 
 function parsePerguntas(md) {
   const blocos = md.split("## ").slice(1);
@@ -63,7 +97,7 @@ function montarQuiz() {
       `).join("")}
     `;
 
-    quizDiv.appendChild(div);
+    document.getElementById("quiz").appendChild(div);
   });
 }
 
