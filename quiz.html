@@ -2,19 +2,25 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quiz</title>
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <h1 id="titulo"></h1>
+  <main>
+    <a href="index.html" style="margin-bottom: 20px; display:block;">← Voltar ao início</a>
 
-  <div id="quiz"></div>
+    <h1 id="titulo">Carregando...</h1>
 
-  <button onclick="verResultado()">Ver resultado</button>
-  <p id="resultado"></p>
+    <div id="quiz">
+      </div>
 
-  <a href="index.html">← Voltar</a>
+    <button onclick="verResultado()" id="btn-resultado">Ver Resultado</button>
+    
+    <div id="resultado" style="display:none;"></div>
+  </main>
 
   <script src="script.js"></script>
 </body>

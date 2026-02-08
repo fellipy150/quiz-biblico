@@ -1,115 +1,161 @@
-/* =====================
-   Reset
-===================== */
+/* =========================================
+   STYLE.CSS - Moderno & Mobile First
+========================================= */
+
+:root {
+  /* Paleta de Cores inspirada em Apps Modernos */
+  --primary: #10b981;       /* Verde vibrante (Emerald) */
+  --primary-dark: #059669;  /* Verde mais escuro para hover */
+  --accent: #34d399;        /* Verde claro para detalhes */
+  --background: #f3f4f6;    /* Cinza muito suave para o fundo */
+  --card-bg: #ffffff;       /* Branco puro para os cartões */
+  --text-main: #1f2937;     /* Cinza quase preto para leitura */
+  --text-light: #6b7280;    /* Cinza médio para detalhes */
+  --danger: #ef4444;        /* Vermelho para erros */
+  
+  /* Sombras suaves (Elevation) */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --radius: 16px;
+}
+
+/* Reset básico */
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; /* Remove flash azul no mobile */
 }
 
 body {
   margin: 0;
   padding: 0;
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #eef6f0;
-  color: #1f2d27;
-  line-height: 1.7;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--background);
+  color: var(--text-main);
+  line-height: 1.6;
 }
 
-/* =====================
-   Layout
-===================== */
+/* Container Centralizado (estilo App) */
 main {
-  max-width: 720px;
-  margin: auto;
-  padding: 28px 22px 50px;
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* =====================
-   Títulos
+   Títulos & Cabeçalho
 ===================== */
 h1 {
-  font-size: 2.1rem;
+  font-size: 1.75rem;
+  font-weight: 800;
   text-align: center;
-  color: #1b5e20;
-  margin-bottom: 28px;
+  color: var(--text-main);
+  margin-bottom: 30px;
+  letter-spacing: -0.025em;
 }
 
-h2 {
-  font-size: 1.8rem;
-  color: #1b5e20;
+h1 span {
+  color: var(--primary); /* Destaque na cor verde */
+}
+
+/* =====================
+   Lista de Quizzes (Index)
+===================== */
+#lista-quizes {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+#lista-quizes li a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card-bg);
+  padding: 20px 24px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--text-main);
+  font-weight: 600;
+  font-size: 1.1rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+#lista-quizes li a:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+/* Ícone de seta simulado via CSS */
+#lista-quizes li a::after {
+  content: "➜";
+  color: var(--primary);
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+/* =====================
+   Tela do Quiz
+===================== */
+#quiz {
+  background: var(--card-bg);
+  padding: 24px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
   margin-bottom: 20px;
 }
 
-/* =====================
-   Lista de quizzes
-===================== */
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-ul li {
-  margin-bottom: 18px;
-}
-
-ul li a {
-  display: block;
-  padding: 22px;
-  background: #ffffff;
-  border-radius: 16px;
-  text-decoration: none;
-  color: #1b5e20;
-  font-weight: 700;
-  font-size: 1.3rem;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-}
-
-ul li a:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-/* =====================
-   Quiz
-===================== */
-#quiz {
-  margin-top: 30px;
-}
-
-/* =====================
-   Pergunta
-===================== */
 .pergunta {
-  font-size: 1.7rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
+  color: var(--text-main);
+  line-height: 1.4;
 }
 
 /* =====================
-   Opções
+   Opções de Resposta
 ===================== */
 .opcao {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 20px;
-  margin-bottom: 18px;
-  background: #ffffff;
-  border-radius: 14px;
-  border: 3px solid transparent;
-  font-size: 1.25rem;
+  padding: 16px;
+  margin-bottom: 12px;
+  background: var(--background);
+  border: 2px solid transparent;
+  border-radius: 12px;
   cursor: pointer;
-  transition: border 0.15s ease, background 0.15s ease;
-}
-
-.opcao input {
-  transform: scale(1.6);
+  transition: all 0.2s ease;
+  font-weight: 500;
+  position: relative; /* Para o efeito de clique */
 }
 
 .opcao:hover {
-  border-color: #81c784;
-  background: #f3faf5;
+  background: #e6fffa; /* Verde muito claro */
+  border-color: var(--accent);
+}
+
+/* Quando o input dentro da opção estiver marcado (Requer suporte CSS :has ou JS) */
+.opcao:has(input:checked),
+.opcao.selecionada { 
+  background: #ecfdf5;
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+/* Estilizando o Radio Button Nativo */
+.opcao input[type="radio"] {
+  accent-color: var(--primary);
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  cursor: pointer;
 }
 
 /* =====================
@@ -117,52 +163,54 @@ ul li a:hover {
 ===================== */
 button {
   width: 100%;
-  margin-top: 28px;
-  padding: 20px;
-  font-size: 1.3rem;
+  padding: 18px;
+  font-size: 1.1rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #2e7d32, #43a047);
   color: white;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   border: none;
-  border-radius: 16px;
+  border-radius: var(--radius);
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(46, 125, 50, 0.3);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: transform 0.1s, box-shadow 0.1s;
+  margin-top: 10px;
 }
 
 button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(46, 125, 50, 0.35);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  transform: translateY(-1px);
 }
 
 button:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 /* =====================
    Resultado
 ===================== */
 #resultado {
-  margin-top: 32px;
-  padding: 28px;
-  background: #ffffff;
-  border-radius: 18px;
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: var(--radius);
   text-align: center;
-  font-size: 1.5rem;
   font-weight: 700;
-  color: #2e7d32;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  color: var(--primary-dark);
+  box-shadow: var(--shadow-sm);
+  margin-top: 20px;
+  font-size: 1.2rem;
+  border: 1px solid #d1fae5;
 }
 
-/* =====================
-   Desktop (ajuste leve)
-===================== */
-@media (min-width: 900px) {
-  h1 {
-    font-size: 2.3rem;
-  }
+/* Botão de Voltar */
+a[href="index.html"] {
+  display: inline-block;
+  margin-top: 20px;
+  color: var(--text-light);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
 
-  .pergunta {
-    font-size: 1.8rem;
-  }
+a[href="index.html"]:hover {
+  color: var(--primary);
 }
