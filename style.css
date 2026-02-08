@@ -1,5 +1,5 @@
 /* =====================
-   Reset básico
+   Reset
 ===================== */
 * {
   box-sizing: border-box;
@@ -9,35 +9,34 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f2f7f4;
+  background: #eef6f0;
   color: #1f2d27;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 /* =====================
-   Layout principal
+   Layout
 ===================== */
 main {
-  max-width: 680px;
+  max-width: 720px;
   margin: auto;
-  padding: 24px 20px 40px;
+  padding: 28px 22px 50px;
 }
 
 /* =====================
    Títulos
 ===================== */
-h1, h2 {
-  color: #1b5e20;
-  margin-bottom: 16px;
-}
-
 h1 {
-  font-size: 1.6rem;
+  font-size: 2.1rem;
   text-align: center;
+  color: #1b5e20;
+  margin-bottom: 28px;
 }
 
 h2 {
-  font-size: 1.4rem;
+  font-size: 1.8rem;
+  color: #1b5e20;
+  margin-bottom: 20px;
 }
 
 /* =====================
@@ -50,37 +49,41 @@ ul {
 }
 
 ul li {
-  margin-bottom: 12px;
+  margin-bottom: 18px;
 }
 
 ul li a {
   display: block;
-  padding: 16px;
+  padding: 22px;
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 16px;
   text-decoration: none;
   color: #1b5e20;
-  font-weight: 600;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  font-weight: 700;
+  font-size: 1.3rem;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
 ul li a:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
 /* =====================
    Quiz
 ===================== */
 #quiz {
-  margin-top: 24px;
+  margin-top: 30px;
 }
 
+/* =====================
+   Pergunta
+===================== */
 .pergunta {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 20px;
+  font-size: 1.7rem;
+  font-weight: 700;
+  margin-bottom: 28px;
 }
 
 /* =====================
@@ -89,24 +92,24 @@ ul li a:hover {
 .opcao {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px;
-  margin-bottom: 12px;
+  gap: 14px;
+  padding: 20px;
+  margin-bottom: 18px;
   background: #ffffff;
-  border-radius: 10px;
-  border: 2px solid transparent;
-  font-size: 1rem;
+  border-radius: 14px;
+  border: 3px solid transparent;
+  font-size: 1.25rem;
   cursor: pointer;
   transition: border 0.15s ease, background 0.15s ease;
 }
 
 .opcao input {
-  transform: scale(1.2);
+  transform: scale(1.6);
 }
 
 .opcao:hover {
-  border-color: #a5d6a7;
-  background: #f6fbf7;
+  border-color: #81c784;
+  background: #f3faf5;
 }
 
 /* =====================
@@ -114,52 +117,52 @@ ul li a:hover {
 ===================== */
 button {
   width: 100%;
-  margin-top: 20px;
-  padding: 16px;
-  font-size: 1.05rem;
-  font-weight: 600;
+  margin-top: 28px;
+  padding: 20px;
+  font-size: 1.3rem;
+  font-weight: 700;
   background: linear-gradient(135deg, #2e7d32, #43a047);
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: 16px;
   cursor: pointer;
-  box-shadow: 0 6px 14px rgba(46, 125, 50, 0.25);
+  box-shadow: 0 8px 20px rgba(46, 125, 50, 0.3);
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
 button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(46, 125, 50, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(46, 125, 50, 0.35);
 }
 
 button:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 /* =====================
    Resultado
 ===================== */
 #resultado {
-  margin-top: 24px;
-  padding: 20px;
+  margin-top: 32px;
+  padding: 28px;
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 18px;
   text-align: center;
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #2e7d32;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
 /* =====================
-   Responsividade
+   Desktop (ajuste leve)
 ===================== */
-@media (min-width: 768px) {
+@media (min-width: 900px) {
   h1 {
-    font-size: 1.8rem;
+    font-size: 2.3rem;
   }
 
   .pergunta {
-    font-size: 1.35rem;
+    font-size: 1.8rem;
   }
 }
