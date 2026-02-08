@@ -1,12 +1,28 @@
-const quizDiv = document.getElementById("quiz");
-let perguntas = [];
+const params = new URLSearchParams(window.location.search);
+const quizNome = params.get("quiz");
 
-fetch("perguntas.md")
-  .then(res => res.text())
+if (!quizNome) {
+  document.body.innerHTML = "<p>Quiz não encontrado 😢</p>";
+  throw new Error("Quiz não informado");
+}
+
+fetch(`quizes/${quizNome}.md`)
+  .then(res => {
+    if (!res.ok) throw new Error("Arquivo não encontrado");
+    return res.text();
+  })
   .then(texto => {
+    document.getElementById("titulo").innerText =
+      `Quiz: ${quizNome.charAt(0).toUpperCase() + quizNome.slice(1)}`;
     parsePerguntas(texto);
     montarQuiz();
+  })
+  .catch(() => {
+    document.body.innerHTML = "<p>Erro ao carregar o quiz 😢</p>";
   });
+
+const quizDiv = document.getElementById("quiz");
+let perguntas = [];
 
 function parsePerguntas(md) {
   const blocos = md.split("## ").slice(1);
@@ -18,14 +34,14 @@ function parsePerguntas(md) {
     const opcoes = [];
     let correta = 0;
 
-    linhas.slice(1).forEach((linha, index) => {
+    linhas.slice(1).forEach(linha => {
       if (linha.startsWith("- ")) {
-        let textoOpcao = linha.replace("- ", "").trim();
-        if (textoOpcao.endsWith("*")) {
+        let texto = linha.replace("- ", "").trim();
+        if (texto.endsWith("*")) {
           correta = opcoes.length;
-          textoOpcao = textoOpcao.replace("*", "").trim();
+          texto = texto.replace("*", "").trim();
         }
-        opcoes.push(textoOpcao);
+        opcoes.push(texto);
       }
     });
 
@@ -55,12 +71,10 @@ function verResultado() {
   let pontos = 0;
 
   perguntas.forEach((item, index) => {
-    const resposta = document.querySelector(`input[name="p${index}"]:checked`);
-    if (resposta && Number(resposta.value) === item.correta) {
-      pontos++;
-    }
+    const r = document.querySelector(`input[name="p${index}"]:checked`);
+    if (r && Number(r.value) === item.correta) pontos++;
   });
 
   document.getElementById("resultado").innerText =
-    `Você acertou ${pontos} de ${perguntas.length} perguntas 🙌`;
+    `Você acertou ${pontos} de ${perguntas.length} 🙌`;
 }
