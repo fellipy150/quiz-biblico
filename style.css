@@ -1,216 +1,214 @@
 /* =========================================
-   STYLE.CSS - Moderno & Mobile First
+   STYLE.CSS - Tema Guardiões da Palavra
 ========================================= */
 
 :root {
-  /* Paleta de Cores inspirada em Apps Modernos */
-  --primary: #10b981;       /* Verde vibrante (Emerald) */
-  --primary-dark: #059669;  /* Verde mais escuro para hover */
-  --accent: #34d399;        /* Verde claro para detalhes */
-  --background: #f3f4f6;    /* Cinza muito suave para o fundo */
-  --card-bg: #ffffff;       /* Branco puro para os cartões */
-  --text-main: #1f2937;     /* Cinza quase preto para leitura */
-  --text-light: #6b7280;    /* Cinza médio para detalhes */
-  --danger: #ef4444;        /* Vermelho para erros */
-  
-  /* Sombras suaves (Elevation) */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --radius: 16px;
+  --brand-green: #25A20C;   /* A cor solicitada */
+  --brand-dark: #1a7508;    /* Um tom mais escuro para botões/detalhes */
+  --white: #ffffff;
+  --text-dark: #1f2937;
+  --error: #ef4444;         /* Vermelho para erro */
+  --radius: 20px;           /* Bordas bem arredondadas */
 }
 
-/* Reset básico */
 * {
   box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent; /* Remove flash azul no mobile */
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: var(--background);
-  color: var(--text-main);
-  line-height: 1.6;
+  font-family: 'Inter', system-ui, sans-serif;
+  /* Fundo verde solicitado */
+  background-color: var(--brand-green);
+  /* Adiciona um padrão sutil ou gradiente para ficar moderno */
+  background-image: linear-gradient(180deg, #25A20C 0%, #1a7508 100%);
+  color: var(--white);
+  min-height: 100vh;
 }
 
-/* Container Centralizado (estilo App) */
 main {
   max-width: 600px;
   margin: 0 auto;
-  min-height: 100vh;
   padding: 20px;
   display: flex;
   flex-direction: column;
-}
-
-/* =====================
-   Títulos & Cabeçalho
-===================== */
-h1 {
-  font-size: 1.75rem;
-  font-weight: 800;
-  text-align: center;
-  color: var(--text-main);
-  margin-bottom: 30px;
-  letter-spacing: -0.025em;
-}
-
-h1 span {
-  color: var(--primary); /* Destaque na cor verde */
-}
-
-/* =====================
-   Lista de Quizzes (Index)
-===================== */
-#lista-quizes {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  gap: 16px;
-}
-
-#lista-quizes li a {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: var(--card-bg);
-  padding: 20px 24px;
+}
+
+/* =====================
+   Logo e Cabeçalho
+===================== */
+.logo-container {
+  text-align: center;
+  margin-bottom: 30px;
+  margin-top: 20px;
+}
+
+.logo-img {
+  max-width: 200px; /* Tamanho controlado da logo */
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); /* Sombra na logo */
+}
+
+h1 {
+  font-size: 1.5rem;
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* =====================
+   Cartões (Lista e Quiz)
+===================== */
+#lista-quizes, #quiz-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Item da lista de quizzes */
+#lista-quizes li a {
+  display: block;
+  background: var(--white);
+  color: var(--text-dark);
+  padding: 22px;
   border-radius: var(--radius);
   text-decoration: none;
-  color: var(--text-main);
-  font-weight: 600;
-  font-size: 1.1rem;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
-}
-
-#lista-quizes li a:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--primary);
-}
-
-/* Ícone de seta simulado via CSS */
-#lista-quizes li a::after {
-  content: "➜";
-  color: var(--primary);
-  font-size: 0.9rem;
-  opacity: 0.7;
-}
-
-/* =====================
-   Tela do Quiz
-===================== */
-#quiz {
-  background: var(--card-bg);
-  padding: 24px;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
-  margin-bottom: 20px;
-}
-
-.pergunta {
-  font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 24px;
-  color: var(--text-main);
-  line-height: 1.4;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+  text-align: center;
 }
 
-/* =====================
-   Opções de Resposta
-===================== */
-.opcao {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  margin-bottom: 12px;
-  background: var(--background);
-  border: 2px solid transparent;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
-  position: relative; /* Para o efeito de clique */
-}
-
-.opcao:hover {
-  background: #e6fffa; /* Verde muito claro */
-  border-color: var(--accent);
-}
-
-/* Quando o input dentro da opção estiver marcado (Requer suporte CSS :has ou JS) */
-.opcao:has(input:checked),
-.opcao.selecionada { 
-  background: #ecfdf5;
-  border-color: var(--primary);
-  color: var(--primary-dark);
-}
-
-/* Estilizando o Radio Button Nativo */
-.opcao input[type="radio"] {
-  accent-color: var(--primary);
-  width: 20px;
-  height: 20px;
-  margin-right: 12px;
-  cursor: pointer;
-}
-
-/* =====================
-   Botões
-===================== */
-button {
-  width: 100%;
-  padding: 18px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: white;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-  transition: transform 0.1s, box-shadow 0.1s;
-  margin-top: 10px;
-}
-
-button:hover {
-  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
-  transform: translateY(-1px);
-}
-
-button:active {
+#lista-quizes li a:active {
   transform: scale(0.98);
 }
 
 /* =====================
-   Resultado
+   Área do Quiz
 ===================== */
-#resultado {
-  background: var(--card-bg);
-  padding: 20px;
+.card-quiz {
+  background: var(--white);
+  color: var(--text-dark);
+  padding: 25px;
   border-radius: var(--radius);
-  text-align: center;
-  font-weight: 700;
-  color: var(--primary-dark);
-  box-shadow: var(--shadow-sm);
-  margin-top: 20px;
-  font-size: 1.2rem;
-  border: 1px solid #d1fae5;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 }
 
-/* Botão de Voltar */
-a[href="index.html"] {
-  display: inline-block;
-  margin-top: 20px;
-  color: var(--text-light);
-  text-decoration: none;
-  font-weight: 600;
+.progresso {
   font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-a[href="index.html"]:hover {
-  color: var(--primary);
+.pergunta {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-bottom: 25px;
+  line-height: 1.4;
+  color: #111;
+}
+
+/* =====================
+   Opções Interativas
+===================== */
+.opcao {
+  display: flex;
+  align-items: center;
+  padding: 18px;
+  margin-bottom: 12px;
+  background: #f3f4f6; /* Cinza claro fundo padrão */
+  border: 3px solid transparent;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Esconde o radio button nativo (vamos usar estilo visual) */
+.opcao input {
+  display: none;
+}
+
+/* --- ESTADOS DE RESPOSTA --- */
+
+/* Quando Certo */
+.opcao.correta {
+  background: #dcfce7; /* Verde bem claro */
+  border-color: var(--brand-green);
+  color: var(--brand-dark);
+}
+.opcao.correta::after {
+  content: "✓";
+  position: absolute;
+  right: 20px;
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+/* Quando Errado */
+.opcao.errada {
+  background: #fee2e2; /* Vermelho claro */
+  border-color: var(--error);
+  color: #991b1b;
+  opacity: 0.8;
+}
+.opcao.errada::after {
+  content: "✕";
+  position: absolute;
+  right: 20px;
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+/* Bloqueia cliques após responder */
+.bloqueado {
+  pointer-events: none;
+}
+
+/* =====================
+   Botão Próxima
+===================== */
+#btn-prox {
+  background: var(--brand-dark); /* Verde escuro para destaque */
+  color: white;
+  border: none;
+  width: 100%;
+  padding: 20px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: var(--radius);
+  margin-top: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  display: none; /* Começa escondido */
+  animation: subir 0.3s ease forwards;
+}
+
+@keyframes subir {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =====================
+   Resultado e Botão Voltar
+===================== */
+.btn-voltar {
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  margin-bottom: 20px;
+  display: inline-block;
+  font-weight: 600;
 }

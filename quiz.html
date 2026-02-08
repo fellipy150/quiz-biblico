@@ -3,23 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz</title>
+  <title>Quiz - Guardiões</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
   <main>
-    <a href="index.html" style="margin-bottom: 20px; display:block;">← Voltar ao início</a>
+    <a href="index.html" class="btn-voltar">← Voltar ao início</a>
+    
+    <h1 id="titulo-quiz">Carregando...</h1>
 
-    <h1 id="titulo">Carregando...</h1>
-
-    <div id="quiz">
+    <div id="quiz-container">
       </div>
 
-    <button onclick="verResultado()" id="btn-resultado">Ver Resultado</button>
-    
-    <div id="resultado" style="display:none;"></div>
   </main>
 
   <script src="script.js"></script>

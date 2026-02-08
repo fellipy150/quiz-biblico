@@ -1,238 +1,183 @@
 // =========================================
-//  SCRIPT.JS - Lógica do Quiz Mobile First
+//  SCRIPT.JS - Guardiões da Palavra
 // =========================================
 
-// Estado global
+// Elementos Globais
+const listaEl = document.getElementById("lista-quizes");
+const quizContainer = document.getElementById("quiz-container");
+const tituloEl = document.getElementById("titulo-quiz");
+
+// Variáveis de Estado
 let perguntas = [];
 let indiceAtual = 0;
-let respostasUsuario = [];
-
-// Elementos do DOM
-const containerLista = document.getElementById("lista-quizes");
-const containerQuiz = document.getElementById("quiz");
-const elTitulo = document.getElementById("titulo");
-const elResultado = document.getElementById("resultado");
+let acertos = 0;
+let respondido = false; // Trava para não responder duas vezes
 
 // =======================
-// 1. TELA INICIAL (Lista)
+// 1. CARREGAR LISTA (Index)
 // =======================
-if (containerLista) {
+if (listaEl) {
   fetch("quizes/index.json")
     .then(res => res.json())
-    .then(lista => {
-      // Limpa lista (loading...)
-      containerLista.innerHTML = "";
-      
-      lista.forEach(item => {
-        const li = document.createElement("li");
-        li.innerHTML = `
-          <a href="quiz.html?id=${item.arquivo}">
-            ${item.titulo}
-          </a>`;
-        containerLista.appendChild(li);
+    .then(dados => {
+      listaEl.innerHTML = "";
+      dados.forEach(quiz => {
+        listaEl.innerHTML += `
+          <li>
+            <a href="quiz.html?id=${quiz.arquivo}">${quiz.titulo}</a>
+          </li>`;
       });
     })
-    .catch(err => {
-      console.error(err);
-      containerLista.innerHTML = "<li style='text-align:center; color:red'>Erro ao carregar lista.</li>";
-    });
+    .catch(err => console.error("Erro ao carregar lista", err));
 }
 
 // =======================
-// 2. TELA DO QUIZ
+// 2. CARREGAR QUIZ (Quiz Page)
 // =======================
-if (containerQuiz) {
+if (quizContainer) {
   const params = new URLSearchParams(window.location.search);
-  const quizArquivo = params.get("id"); // mudei de 'quiz' para 'id' pra ficar padrao url
+  const idQuiz = params.get("id");
 
-  if (!quizArquivo) {
-    alert("Quiz não especificado!");
-    window.location.href = "index.html";
+  if (idQuiz) {
+    fetch(`quizes/${idQuiz}.md`)
+      .then(res => res.text())
+      .then(text => {
+        processarMarkdown(text);
+        renderizarPergunta();
+      })
+      .catch(err => {
+        quizContainer.innerHTML = "<p>Erro ao carregar quiz.</p>";
+      });
   } else {
-    carregarQuiz(quizArquivo);
-  }
-}
-
-async function carregarQuiz(arquivo) {
-  try {
-    const res = await fetch(`quizes/${arquivo}.md`);
-    if (!res.ok) throw new Error("Falha ao abrir arquivo .md");
-    
-    const texto = await res.text();
-    processarMarkdown(texto);
-    
-    // Inicia o jogo
-    renderizarPergunta();
-    
-  } catch (erro) {
-    containerQuiz.innerHTML = `<p style="text-align:center">Erro: ${erro.message}</p>`;
+    window.location.href = "index.html";
   }
 }
 
 // =======================
-// 3. PARSER (Lê o Markdown)
+// 3. PROCESSADOR DE MARKDOWN
 // =======================
 function processarMarkdown(md) {
-  // Normaliza quebras de linha
   const linhas = md.replace(/\r\n/g, "\n").split("\n");
   
-  // Pega o título (primeira linha com #)
+  // Título
   const tituloRaw = linhas.find(l => l.startsWith("# "));
-  if (tituloRaw && elTitulo) {
-    elTitulo.innerText = tituloRaw.replace("# ", "").trim();
-  }
+  if (tituloEl && tituloRaw) tituloEl.innerText = tituloRaw.replace("# ", "").trim();
 
-  // Quebra por blocos de pergunta (##)
-  // O slice(1) remove o conteúdo antes da primeira pergunta
+  // Perguntas
   const blocos = md.split(/^## /gm).slice(1);
-
   perguntas = blocos.map(bloco => {
     const lines = bloco.trim().split("\n");
     const enunciado = lines[0].trim();
-    
     const opcoes = [];
-    let indiceCorreto = 0;
+    let correta = 0;
     
-    // Filtra apenas linhas que começam com - (opções)
-    let contadorOpcoes = 0;
-    lines.slice(1).forEach(linha => {
-      if (linha.trim().startsWith("- ")) {
-        let texto = linha.replace("- ", "").trim();
-        
-        // Verifica se é a correta (tem * no final)
-        if (texto.endsWith("*")) {
-          indiceCorreto = contadorOpcoes;
-          texto = texto.slice(0, -1).trim(); // Remove o asterisco
+    let count = 0;
+    lines.slice(1).forEach(l => {
+      if (l.trim().startsWith("- ")) {
+        let txt = l.replace("- ", "").trim();
+        if (txt.endsWith("*")) {
+          correta = count;
+          txt = txt.slice(0, -1).trim();
         }
-        
-        opcoes.push(texto);
-        contadorOpcoes++;
+        opcoes.push(txt);
+        count++;
       }
     });
 
-    return { enunciado, opcoes, correta: indiceCorreto };
+    return { enunciado, opcoes, correta };
   });
 }
 
 // =======================
-// 4. RENDERIZAÇÃO (UI)
+// 4. RENDERIZAR PERGUNTA
 // =======================
 function renderizarPergunta() {
-  // Se acabou as perguntas, mostra resultado
   if (indiceAtual >= perguntas.length) {
-    finalizarQuiz();
+    mostrarResultadoFinal();
     return;
   }
 
   const p = perguntas[indiceAtual];
-  
-  // Barra de progresso simples (texto)
-  const progresso = `<p style="color:#666; font-size:0.9rem; margin-bottom:10px;">
-    Pergunta ${indiceAtual + 1} de ${perguntas.length}
-  </p>`;
+  respondido = false; // Reseta a trava para a nova pergunta
 
   let htmlOpcoes = "";
-  p.opcoes.forEach((op, index) => {
-    // Note o onclick="selecionar(this)" para dar feedback visual
+  p.opcoes.forEach((op, i) => {
+    // Passamos o índice para a função verificarResposta
     htmlOpcoes += `
-      <label class="opcao" id="op-${index}" onclick="marcarOpcao(${index})">
-        <input type="radio" name="resposta" value="${index}">
-        <span>${op}</span>
-      </label>
+      <div class="opcao" id="op-${i}" onclick="verificarResposta(${i})">
+        ${op}
+      </div>
     `;
   });
 
-  containerQuiz.innerHTML = `
-    ${progresso}
-    <div class="pergunta">${p.enunciado}</div>
-    <div class="lista-opcoes">${htmlOpcoes}</div>
-    
-    <button id="btn-prox" onclick="proxima()" disabled style="opacity: 0.5; cursor: not-allowed;">
-      Próxima Pergunta
-    </button>
+  quizContainer.innerHTML = `
+    <div class="card-quiz">
+      <div class="progresso">Questão ${indiceAtual + 1} de ${perguntas.length}</div>
+      <div class="pergunta">${p.enunciado}</div>
+      <div class="lista-opcoes">${htmlOpcoes}</div>
+      
+      <button id="btn-prox" onclick="proximaPergunta()">Próxima Pergunta ➜</button>
+    </div>
   `;
 }
 
 // =======================
-// 5. INTERAÇÃO
+// 5. LÓGICA DE RESPOSTA (Onde a mágica acontece)
 // =======================
-let respostaTemporaria = null;
+window.verificarResposta = function(indiceEscolhido) {
+  if (respondido) return; // Se já respondeu, não faz nada
+  respondido = true;
 
-// Chamada quando clica no label da opção
-window.marcarOpcao = function(index) {
-  // Remove classe visual de todos
-  document.querySelectorAll('.opcao').forEach(el => {
-    el.classList.remove('selecionada');
-    el.style.borderColor = "transparent";
-    el.style.background = "#ffffff";
-  });
+  const p = perguntas[indiceAtual];
+  const elEscolhido = document.getElementById(`op-${indiceEscolhido}`);
+  const elCorreto = document.getElementById(`op-${p.correta}`);
+  const todasOpcoes = document.querySelectorAll('.opcao');
 
-  // Adiciona na atual
-  const selecionado = document.getElementById(`op-${index}`);
-  if (selecionado) {
-    selecionado.classList.add('selecionada');
-    // Força estilo via JS para garantir compatibilidade
-    selecionado.style.borderColor = "#10b981"; 
-    selecionado.style.background = "#ecfdf5";
+  // Bloqueia todas as opções (para não clicar em outra)
+  todasOpcoes.forEach(el => el.classList.add('bloqueado'));
+
+  if (indiceEscolhido === p.correta) {
+    // ACERTOU
+    elEscolhido.classList.add('correta');
+    acertos++;
+  } else {
+    // ERROU
+    elEscolhido.classList.add('errada'); // Fica vermelho
+    elCorreto.classList.add('correta');  // Mostra qual era a verde
   }
 
-  // Habilita botão
+  // Mostra o botão de próxima
   const btn = document.getElementById("btn-prox");
-  btn.disabled = false;
-  btn.style.opacity = "1";
-  btn.style.cursor = "pointer";
+  btn.style.display = "block";
+};
 
-  respostaTemporaria = index;
-}
-
-window.proxima = function() {
-  if (respostaTemporaria === null) return;
-  
-  respostasUsuario.push(respostaTemporaria);
-  respostaTemporaria = null; // Reset
+window.proximaPergunta = function() {
   indiceAtual++;
   renderizarPergunta();
-}
+};
 
 // =======================
-// 6. RESULTADO FINAL
+// 6. TELA FINAL
 // =======================
-function finalizarQuiz() {
-  let acertos = 0;
-  perguntas.forEach((p, i) => {
-    if (p.correta === respostasUsuario[i]) {
-      acertos++;
-    }
-  });
-
+function mostrarResultadoFinal() {
   const porcentagem = Math.round((acertos / perguntas.length) * 100);
   
-  let mensagem = "";
-  let cor = "";
-  
-  if (porcentagem === 100) {
-    mensagem = "Perfeito! Você é um mestre bíblico! 🏆";
-    cor = "#10b981";
-  } else if (porcentagem >= 70) {
-    mensagem = "Muito bom! Você conhece bem a Bíblia. 👏";
-    cor = "#34d399";
-  } else {
-    mensagem = "Continue estudando, você chega lá! 📖";
-    cor = "#f59e0b";
-  }
-
-  // Esconde o container do quiz
-  containerQuiz.style.display = "none";
-
-  // Mostra o resultado
-  elResultado.style.display = "block";
-  elResultado.innerHTML = `
-    <h2 style="color:${cor}; font-size: 3rem; margin:0;">${porcentagem}%</h2>
-    <p style="font-size: 1.2rem; margin-top:5px; color:#4b5563">Acertou ${acertos} de ${perguntas.length}</p>
-    <hr style="border:0; border-top:1px solid #eee; margin: 20px 0;">
-    <p style="font-weight:600; font-size:1.1rem; color:${cor}">${mensagem}</p>
-    
-    <button onclick="location.reload()" style="margin-top:20px;">Tentar Novamente</button>
-    <a href="index.html" style="display:block; margin-top:15px; text-decoration:none; color:#6b7280">Voltar ao Início</a>
+  quizContainer.innerHTML = `
+    <div class="card-quiz" style="text-align:center;">
+      <h2>Fim do Treinamento!</h2>
+      <div style="font-size: 4rem; color: var(--brand-green); font-weight:800; margin: 20px 0;">
+        ${porcentagem}%
+      </div>
+      <p style="font-size:1.2rem; margin-bottom:20px;">
+        Você acertou <strong>${acertos}</strong> de <strong>${perguntas.length}</strong>.
+      </p>
+      
+      <button onclick="location.reload()" style="background:var(--brand-green); color:white; padding:15px 30px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer;">
+        Tentar Novamente
+      </button>
+      
+      <br><br>
+      <a href="index.html" style="color:#666; text-decoration:none;">Voltar ao Menu</a>
+    </div>
   `;
 }
