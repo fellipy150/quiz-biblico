@@ -1,5 +1,5 @@
 /* =========================================
-   STYLE.CSS - Compacto & Mobile (Tema Guardiões)
+   STYLE.CSS - Versão Guardiões (Com Timer e Confete)
 ========================================= */
 
 :root {
@@ -7,219 +7,141 @@
   --brand-dark: #1a7508;
   --white: #ffffff;
   --text-dark: #1f2937;
-  --text-light: #4b5563;
+  --text-light: #6b7280;
   --error: #ef4444;
-  --radius: 16px; /* Reduzi um pouco o arredondamento para ficar proporcional */
+  --radius: 16px;
 }
 
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0; padding: 0;
+  font-family: 'Inter', sans-serif;
   background-color: var(--brand-green);
-  /* Gradiente sutil para dar profundidade */
   background-image: linear-gradient(180deg, #25A20C 0%, #176408 100%);
   color: var(--white);
   min-height: 100vh;
+  overflow-x: hidden; /* Evita rolagem horizontal pelo confete */
 }
 
 main {
-  max-width: 500px; /* Reduzi a largura máxima para focar mais no centro */
+  max-width: 500px;
   margin: 0 auto;
-  padding: 16px; /* Margem da tela reduzida */
+  padding: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* =====================
-   Logo e Cabeçalho
-===================== */
-.logo-container {
-  text-align: center;
-  margin-bottom: 20px; /* Menos espaço embaixo da logo */
-  margin-top: 10px;
-}
+/* --- LOGO & CABEÇALHO --- */
+.logo-container { margin: 10px 0 20px 0; text-align: center; }
+.logo-img { max-width: 140px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); }
+h1 { font-size: 1.3rem; margin-bottom: 20px; text-align: center; }
 
-.logo-img {
-  max-width: 140px; /* Logo menor para sobrar espaço pro conteúdo */
-  width: 100%;
-  height: auto;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
-}
-
-h1 {
-  font-size: 1.3rem; /* Título menor */
-  text-align: center;
-  margin-bottom: 20px;
-  font-weight: 800;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  line-height: 1.2;
-}
-
-/* =====================
-   Listas e Cartões
-===================== */
-#lista-quizes, #quiz-container {
+/* --- CORREÇÃO DA LISTA (Pedido 1) --- */
+#lista-quizes {
+  list-style: none; /* Remove o ponto/bolinha */
+  padding: 0;       /* Remove o recuo lateral */
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px; /* Espaço entre itens reduzido */
+  gap: 12px;
 }
 
-/* Item da lista de quizzes (MENU) */
 #lista-quizes li a {
   display: block;
   background: var(--white);
   color: var(--text-dark);
-  padding: 16px 20px; /* Botão mais fino */
+  padding: 16px 20px;
   border-radius: var(--radius);
   text-decoration: none;
   font-weight: 600;
-  font-size: 1rem; /* Fonte tamanho padrão de leitura */
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.2s, background 0.2s;
   text-align: center;
 }
 
-#lista-quizes li a:active {
-  transform: scale(0.96);
-  background: #f0fdf4;
+/* --- BARRA DE PROGRESSO (Pedido 2) --- */
+#barra-progresso-container {
+  display: flex;
+  gap: 4px; /* Espaço entre os tracinhos */
+  width: 100%;
+  margin-bottom: 15px;
+  height: 8px;
 }
 
-/* =====================
-   Área do Quiz (PERGUNTA)
-===================== */
+.segmento-barra {
+  flex: 1; /* Todos ocupam o mesmo tamanho */
+  background-color: rgba(255,255,255,0.3); /* Cinza translúcido */
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.segmento-barra.correto { background-color: #a3e635; box-shadow: 0 0 5px #a3e635; } /* Verde neon */
+.segmento-barra.errado { background-color: #f87171; } /* Vermelho claro */
+
+/* --- TIMER (Pedido 3) --- */
+.timer-box {
+  background: rgba(0,0,0,0.2);
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+
+/* --- QUIZ CARD --- */
 .card-quiz {
   background: var(--white);
   color: var(--text-dark);
-  padding: 20px; /* Padding interno menor */
+  padding: 20px;
   border-radius: var(--radius);
   box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  width: 100%;
+  position: relative;
 }
 
-.progresso {
-  font-size: 0.8rem;
-  color: var(--text-light);
-  margin-bottom: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
+.pergunta { font-size: 1.15rem; font-weight: 700; margin-bottom: 20px; color: #111; }
 
-.pergunta {
-  font-size: 1.15rem; /* Fonte da pergunta ajustada */
-  font-weight: 700;
-  margin-bottom: 20px;
-  line-height: 1.4;
-  color: #111;
-}
-
-/* =====================
-   Opções Interativas
-===================== */
 .opcao {
-  display: flex;
-  align-items: center;
-  padding: 14px 16px; /* Opções mais compactas */
+  padding: 14px 16px;
   margin-bottom: 10px;
   background: #f8fafc;
-  border: 2px solid #e5e7eb; /* Borda sutil */
+  border: 2px solid #e5e7eb;
   border-radius: 12px;
   cursor: pointer;
   font-weight: 500;
-  font-size: 1rem; /* Tamanho de texto ideal para mobile */
-  transition: all 0.2s ease;
   position: relative;
-  line-height: 1.4;
+  transition: all 0.2s;
 }
 
-.opcao input {
-  display: none;
-}
+/* Estados das opções */
+.opcao.correta { background: #dcfce7; border-color: var(--brand-green); color: var(--brand-dark); }
+.opcao.correta::after { content: "✓"; position: absolute; right: 15px; font-weight: bold; }
 
-/* --- ESTADOS DE RESPOSTA --- */
+.opcao.errada { background: #fee2e2; border-color: var(--error); color: #991b1b; }
+.opcao.errada::after { content: "✕"; position: absolute; right: 15px; font-weight: bold; }
 
-/* Quando Certo */
-.opcao.correta {
-  background: #dcfce7;
-  border-color: var(--brand-green);
-  color: var(--brand-dark);
-  font-weight: 700;
-}
-.opcao.correta::after {
-  content: "✓";
-  position: absolute;
-  right: 15px;
-  font-weight: bold;
-  font-size: 1.2rem;
-}
+.bloqueado { pointer-events: none; }
 
-/* Quando Errado */
-.opcao.errada {
-  background: #fee2e2;
-  border-color: var(--error);
-  color: #991b1b;
-  opacity: 0.9;
-}
-.opcao.errada::after {
-  content: "✕";
-  position: absolute;
-  right: 15px;
-  font-weight: bold;
-  font-size: 1.2rem;
-}
-
-.bloqueado {
-  pointer-events: none;
-}
-
-/* =====================
-   Botões e Links
-===================== */
 #btn-prox {
-  background: var(--brand-dark);
-  color: white;
-  border: none;
-  width: 100%;
-  padding: 16px; /* Botão menos alto */
-  font-size: 1.1rem;
-  font-weight: 700;
-  border-radius: var(--radius);
-  margin-top: 15px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  background: var(--brand-dark); color: white; border: none;
+  width: 100%; padding: 16px; font-size: 1.1rem; font-weight: 700;
+  border-radius: var(--radius); margin-top: 15px; cursor: pointer;
   display: none;
-  animation: subir 0.3s ease forwards;
 }
 
-#btn-prox:active {
-  transform: translateY(2px);
+/* --- CONFETE (Pedido 4) --- */
+.confete {
+  position: fixed;
+  width: 10px; height: 10px;
+  background-color: #f2d74e;
+  position: absolute;
+  top: -10px;
+  z-index: 999;
 }
 
-@keyframes subir {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.btn-voltar {
-  color: rgba(255,255,255,0.9);
-  text-decoration: none;
-  margin-bottom: 15px;
-  display: inline-block;
-  font-size: 0.9rem;
-  font-weight: 500;
-  opacity: 0.8;
-}
-
-/* Ajustes para telas MUITO pequenas (iPhone SE antigo, etc) */
-@media (max-width: 360px) {
-  .pergunta { font-size: 1rem; }
-  .opcao { font-size: 0.9rem; padding: 12px; }
-  h1 { font-size: 1.2rem; }
+@keyframes fall {
+  0% { top: -10%; transform: translateX(0px) rotate(0deg); opacity: 1; }
+  100% { top: 110%; transform: translateX(20px) rotate(360deg); opacity: 0; }
 }
