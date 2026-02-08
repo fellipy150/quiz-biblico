@@ -1,15 +1,14 @@
 /* =========================================
-   STYLE.CSS - Versão Guardiões (Com Timer e Confete)
+   STYLE.CSS - Guardiões (Com Dicas e Grupos)
 ========================================= */
-
 :root {
   --brand-green: #25A20C;
   --brand-dark: #1a7508;
   --white: #ffffff;
   --text-dark: #1f2937;
-  --text-light: #6b7280;
   --error: #ef4444;
   --radius: 16px;
+  --yellow-alert: #eab308; /* Cor da dica */
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -21,127 +20,75 @@ body {
   background-image: linear-gradient(180deg, #25A20C 0%, #176408 100%);
   color: var(--white);
   min-height: 100vh;
-  overflow-x: hidden; /* Evita rolagem horizontal pelo confete */
 }
 
 main {
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  max-width: 500px; margin: 0 auto; padding: 16px;
+  display: flex; flex-direction: column; align-items: center;
 }
 
-/* --- LOGO & CABEÇALHO --- */
+/* LOGO */
 .logo-container { margin: 10px 0 20px 0; text-align: center; }
 .logo-img { max-width: 140px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); }
 h1 { font-size: 1.3rem; margin-bottom: 20px; text-align: center; }
 
-/* --- CORREÇÃO DA LISTA (Pedido 1) --- */
-#lista-quizes {
-  list-style: none; /* Remove o ponto/bolinha */
-  padding: 0;       /* Remove o recuo lateral */
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
+/* LISTA INDEX */
+#lista-quizes { list-style: none; padding: 0; width: 100%; display: flex; flex-direction: column; gap: 12px; }
 #lista-quizes li a {
-  display: block;
-  background: var(--white);
-  color: var(--text-dark);
-  padding: 16px 20px;
-  border-radius: var(--radius);
-  text-decoration: none;
-  font-weight: 600;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  text-align: center;
+  display: block; background: var(--white); color: var(--text-dark);
+  padding: 16px 20px; border-radius: var(--radius); text-decoration: none;
+  font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center;
 }
 
-/* --- BARRA DE PROGRESSO (Pedido 2) --- */
-#barra-progresso-container {
-  display: flex;
-  gap: 4px; /* Espaço entre os tracinhos */
-  width: 100%;
-  margin-bottom: 15px;
-  height: 8px;
-}
+/* BARRA DE PROGRESSO */
+#barra-progresso-container { display: flex; gap: 4px; width: 100%; margin-bottom: 15px; height: 8px; }
+.segmento-barra { flex: 1; background-color: rgba(255,255,255,0.3); border-radius: 4px; transition: background 0.3s; }
+.segmento-barra.correto { background-color: #a3e635; box-shadow: 0 0 5px #a3e635; }
+.segmento-barra.errado { background-color: #f87171; }
 
-.segmento-barra {
-  flex: 1; /* Todos ocupam o mesmo tamanho */
-  background-color: rgba(255,255,255,0.3); /* Cinza translúcido */
-  border-radius: 4px;
-  transition: background-color 0.3s;
-}
+/* TIMER */
+.timer-box { background: rgba(0,0,0,0.2); padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; display: inline-block; }
 
-.segmento-barra.correto { background-color: #a3e635; box-shadow: 0 0 5px #a3e635; } /* Verde neon */
-.segmento-barra.errado { background-color: #f87171; } /* Vermelho claro */
+/* QUIZ CARD */
+.card-quiz { background: var(--white); color: var(--text-dark); padding: 20px; border-radius: var(--radius); box-shadow: 0 8px 20px rgba(0,0,0,0.2); width: 100%; position: relative; }
+.pergunta { font-size: 1.15rem; font-weight: 700; margin-bottom: 15px; color: #111; line-height: 1.4; }
 
-/* --- TIMER (Pedido 3) --- */
-.timer-box {
-  background: rgba(0,0,0,0.2);
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  margin-bottom: 10px;
-  display: inline-block;
-}
-
-/* --- QUIZ CARD --- */
-.card-quiz {
-  background: var(--white);
-  color: var(--text-dark);
-  padding: 20px;
-  border-radius: var(--radius);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-  width: 100%;
-  position: relative;
-}
-
-.pergunta { font-size: 1.15rem; font-weight: 700; margin-bottom: 20px; color: #111; }
-
+/* OPÇÕES */
 .opcao {
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  background: #f8fafc;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 500;
-  position: relative;
-  transition: all 0.2s;
+  padding: 14px 16px; margin-bottom: 10px; background: #f8fafc;
+  border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer;
+  font-weight: 500; position: relative; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: space-between;
 }
-
-/* Estados das opções */
 .opcao.correta { background: #dcfce7; border-color: var(--brand-green); color: var(--brand-dark); }
-.opcao.correta::after { content: "✓"; position: absolute; right: 15px; font-weight: bold; }
-
+.opcao.correta::after { content: "✓"; font-weight: bold; font-size: 1.2rem; }
 .opcao.errada { background: #fee2e2; border-color: var(--error); color: #991b1b; }
-.opcao.errada::after { content: "✕"; position: absolute; right: 15px; font-weight: bold; }
-
+.opcao.errada::after { content: "✕"; font-weight: bold; font-size: 1.2rem; }
 .bloqueado { pointer-events: none; }
 
+/* BOTÕES E DICAS */
 #btn-prox {
-  background: var(--brand-dark); color: white; border: none;
-  width: 100%; padding: 16px; font-size: 1.1rem; font-weight: 700;
-  border-radius: var(--radius); margin-top: 15px; cursor: pointer;
-  display: none;
+  background: var(--brand-dark); color: white; border: none; width: 100%;
+  padding: 16px; font-size: 1.1rem; font-weight: 700; border-radius: var(--radius);
+  margin-top: 15px; cursor: pointer; display: none;
 }
 
-/* --- CONFETE (Pedido 4) --- */
-.confete {
-  position: fixed;
-  width: 10px; height: 10px;
-  background-color: #f2d74e;
-  position: absolute;
-  top: -10px;
-  z-index: 999;
+.btn-dica {
+  background: #fef08a; color: #854d0e; border: none; padding: 8px 12px;
+  border-radius: 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer;
+  margin-bottom: 15px; display: inline-flex; align-items: center; gap: 6px;
+  width: 100%; justify-content: center; border: 1px solid #fde047;
+}
+.btn-dica:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+
+.box-dica-texto {
+  background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px;
+  margin-bottom: 15px; font-size: 0.9rem; color: #92400e; border-radius: 4px;
+  animation: fadeIn 0.3s ease;
 }
 
-@keyframes fall {
-  0% { top: -10%; transform: translateX(0px) rotate(0deg); opacity: 1; }
-  100% { top: 110%; transform: translateX(20px) rotate(360deg); opacity: 0; }
-}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* CONFETE */
+.confete { position: absolute; width: 10px; height: 10px; z-index: 999; }
+.btn-voltar { color: rgba(255,255,255,0.8); text-decoration: none; margin-bottom: 15px; display: block; font-size: 0.9rem; }

@@ -1,5 +1,5 @@
 // =========================================
-//  SCRIPT.JS - Guardiões (Timer + Confete + Shuffle)
+//  SCRIPT.JS - Guardiões (Shuffle Total + Dicas)
 // =========================================
 
 const listaEl = document.getElementById("lista-quizes");
@@ -7,17 +7,19 @@ const quizContainer = document.getElementById("quiz-container");
 const barraProgressoEl = document.getElementById("barra-progresso-container");
 const tituloEl = document.getElementById("titulo-quiz");
 
+// Estado do Jogo
 let perguntas = [];
 let indiceAtual = 0;
 let acertos = 0;
 let respondido = false;
+let dicaUsadaGlobal = false; // Só pode usar 1 vez por jogo
 
-// Variáveis do Timer
+// Timer
 let tempoRestante = 20;
 let timerInterval;
 
 // =======================
-// 1. UTILITÁRIOS (Shuffle)
+// UTILS
 // =======================
 function embaralhar(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -28,7 +30,7 @@ function embaralhar(array) {
 }
 
 // =======================
-// 2. CARREGAMENTO
+// CARREGAMENTO
 // =======================
 if (listaEl) {
   fetch("quizes/index.json")
@@ -50,55 +52,80 @@ if (quizContainer) {
       .then(res => res.text())
       .then(text => {
         processarMarkdown(text);
-        renderizarBarraProgresso(); // Cria a barra vazia
+        renderizarBarraProgresso();
         renderizarPergunta();
       })
-      .catch(() => quizContainer.innerHTML = "<p>Erro ao carregar.</p>");
+      .catch((e) => {
+        console.error(e);
+        quizContainer.innerHTML = "<p>Erro ao carregar (verifique o formato do MD).</p>";
+      });
   } else {
     window.location.href = "index.html";
   }
 }
 
 // =======================
-// 3. PROCESSADOR
+// PARSER (Grupos + Checkbox + Dicas)
 // =======================
 function processarMarkdown(md) {
   const linhas = md.replace(/\r\n/g, "\n").split("\n");
+  
+  // 1. Pega Título
   const tituloRaw = linhas.find(l => l.startsWith("# "));
   if (tituloEl && tituloRaw) tituloEl.innerText = tituloRaw.replace("# ", "").trim();
 
-  const blocos = md.split(/^## /gm).slice(1);
-  const perguntasBrutas = blocos.map(bloco => {
-    const lines = bloco.trim().split("\n");
-    const enunciado = lines[0].trim();
-    const opcoes = [];
-    let textoCorreto = "";
+  // 2. Separa por Grupos (---)
+  // O regex ^---$ pega linhas que só tem traços
+  const gruposRaw = md.split(/^---$/gm);
+  
+  let todasPerguntasOrdenadas = [];
 
-    lines.slice(1).forEach(l => {
-      if (l.trim().startsWith("- ")) {
-        let txt = l.replace("- ", "").trim();
-        if (txt.endsWith("*")) {
-          txt = txt.slice(0, -1).trim();
-          textoCorreto = txt; // Guardamos o TEXTO da correta
+  gruposRaw.forEach(grupoTexto => {
+    // Para cada grupo, extraímos as perguntas
+    const blocos = grupoTexto.split(/^## /gm).slice(1); // slice(1) remove lixo antes do primeiro ##
+    
+    let perguntasDoGrupo = blocos.map(bloco => {
+      const lines = bloco.trim().split("\n");
+      const enunciado = lines[0].trim();
+      const opcoes = [];
+      let dica = null;
+
+      lines.slice(1).forEach(linha => {
+        const l = linha.trim();
+        
+        // Checkbox Correta [x]
+        if (l.startsWith("[x]")) {
+          opcoes.push({ texto: l.replace("[x]", "").trim(), correta: true });
         }
-        opcoes.push(txt);
-      }
+        // Checkbox Errada [ ]
+        else if (l.startsWith("[ ]")) {
+          opcoes.push({ texto: l.replace("[ ]", "").trim(), correta: false });
+        }
+        // Dica -#
+        else if (l.startsWith("-#")) {
+          dica = l.replace("-#", "").trim();
+        }
+      });
+
+      return { enunciado, opcoes, dica };
     });
 
-    return { enunciado, opcoes, textoCorreto };
+    // 3. Embaralha SÓ as perguntas DENTRO deste grupo
+    perguntasDoGrupo = embaralhar(perguntasDoGrupo);
+
+    // Adiciona ao array principal mantendo a ordem dos grupos
+    todasPerguntasOrdenadas = todasPerguntasOrdenadas.concat(perguntasDoGrupo);
   });
 
-  // Embaralhar as PERGUNTAS
-  perguntas = embaralhar(perguntasBrutas);
+  perguntas = todasPerguntasOrdenadas;
 }
 
 // =======================
-// 4. UI: BARRA DE PROGRESSO
+// RENDERIZAÇÃO
 // =======================
 function renderizarBarraProgresso() {
   if (!barraProgressoEl) return;
   barraProgressoEl.innerHTML = "";
-  // Cria um segmento para cada pergunta
   perguntas.forEach((_, i) => {
     const seg = document.createElement("div");
     seg.classList.add("segmento-barra");
@@ -109,46 +136,9 @@ function renderizarBarraProgresso() {
 
 function atualizarBarra(indice, acertou) {
   const seg = document.getElementById(`seg-${indice}`);
-  if (seg) {
-    seg.classList.add(acertou ? "correto" : "errado");
-  }
+  if (seg) seg.classList.add(acertou ? "correto" : "errado");
 }
 
-// =======================
-// 5. TIMER
-// =======================
-function iniciarTimer() {
-  tempoRestante = 20;
-  clearInterval(timerInterval);
-  
-  const displayTimer = document.getElementById("display-tempo");
-  if(displayTimer) displayTimer.innerText = `⏱️ ${tempoRestante}s`;
-
-  timerInterval = setInterval(() => {
-    tempoRestante--;
-    if(displayTimer) displayTimer.innerText = `⏱️ ${tempoRestante}s`;
-
-    if (tempoRestante <= 0) {
-      clearInterval(timerInterval);
-      tempoEsgotado();
-    }
-  }, 1000);
-}
-
-function tempoEsgotado() {
-  if (respondido) return;
-  
-  // Trata como erro
-  verificarResposta(-1); // -1 indica timeout
-  
-  // Mensagem visual
-  const titulo = document.querySelector(".pergunta");
-  if(titulo) titulo.innerHTML += " <br><span style='color:red; font-size:0.9em'>(Tempo Esgotado!)</span>";
-}
-
-// =======================
-// 6. RENDERIZAÇÃO
-// =======================
 function renderizarPergunta() {
   if (indiceAtual >= perguntas.length) {
     mostrarResultadoFinal();
@@ -158,24 +148,31 @@ function renderizarPergunta() {
   const p = perguntas[indiceAtual];
   respondido = false;
 
-  // Embaralha as OPÇÕES desta pergunta também (opcional, mas bom)
-  // Mas precisamos rastrear qual é a correta de novo
-  // Vamos criar um array de objetos para manter a referência
-  let opcoesObjs = p.opcoes.map(texto => ({
-    texto,
-    ehCorreta: texto === p.textoCorreto
-  }));
-  opcoesObjs = embaralhar(opcoesObjs);
+  // 4. Embaralhar as ALTERNATIVAS (Opções)
+  // Como já são objetos {texto, correta}, podemos embaralhar sem medo
+  const opcoesEmbaralhadas = embaralhar([...p.opcoes]); 
 
   let htmlOpcoes = "";
-  opcoesObjs.forEach((op, i) => {
-    // Salvamos se é correta no atributo data-correta
+  opcoesEmbaralhadas.forEach((op, index) => {
+    // Usamos o índice do array embaralhado para o ID
     htmlOpcoes += `
-      <div class="opcao" id="op-${i}" data-correta="${op.ehCorreta}" onclick="verificarResposta(${i})">
+      <div class="opcao" id="op-${index}" 
+           data-is-correct="${op.correta}" 
+           onclick="verificarResposta(${index})">
         ${op.texto}
       </div>
     `;
   });
+
+  // Botão de Dica (Se existir dica E não tiver usado a global)
+  let htmlDica = "";
+  if (p.dica) {
+    if (!dicaUsadaGlobal) {
+      htmlDica = `<button class="btn-dica" onclick="mostrarDica(this, '${p.dica.replace(/'/g, "&#39;")}')">💡 Usar Dica (Apenas 1 por jogo)</button>`;
+    } else {
+      htmlDica = `<button class="btn-dica" disabled>💡 Dica indisponível (já usada)</button>`;
+    }
+  }
 
   quizContainer.innerHTML = `
     <div style="text-align:center">
@@ -183,6 +180,9 @@ function renderizarPergunta() {
     </div>
     <div class="card-quiz">
       <div class="pergunta">${p.enunciado}</div>
+      
+      <div id="area-dica">${htmlDica}</div>
+
       <div class="lista-opcoes">${htmlOpcoes}</div>
       <button id="btn-prox" onclick="proximaPergunta()">Próxima Pergunta ➜</button>
     </div>
@@ -191,33 +191,67 @@ function renderizarPergunta() {
   iniciarTimer();
 }
 
-window.verificarResposta = function(indiceEscolhido) {
+// =======================
+// LÓGICA DO JOGO
+// =======================
+function mostrarDica(btn, textoDica) {
+  if(dicaUsadaGlobal) return;
+  dicaUsadaGlobal = true;
+  
+  const area = document.getElementById("area-dica");
+  area.innerHTML = `<div class="box-dica-texto">💡 <strong>Dica:</strong> ${textoDica}</div>`;
+}
+
+function iniciarTimer() {
+  tempoRestante = 20;
+  clearInterval(timerInterval);
+  const displayTimer = document.getElementById("display-tempo");
+  if(displayTimer) displayTimer.innerText = `⏱️ ${tempoRestante}s`;
+
+  timerInterval = setInterval(() => {
+    tempoRestante--;
+    if(displayTimer) displayTimer.innerText = `⏱️ ${tempoRestante}s`;
+    if (tempoRestante <= 0) {
+      clearInterval(timerInterval);
+      tempoEsgotado();
+    }
+  }, 1000);
+}
+
+function tempoEsgotado() {
+  if (respondido) return;
+  verificarResposta(-1); // -1 = Timeout
+  const titulo = document.querySelector(".pergunta");
+  if(titulo) titulo.innerHTML += " <br><span style='color:red; font-size:0.9em'>(Tempo Esgotado!)</span>";
+}
+
+window.verificarResposta = function(index) {
   if (respondido) return;
   respondido = true;
-  clearInterval(timerInterval); // Para o relógio
+  clearInterval(timerInterval);
 
   const opcoesEls = document.querySelectorAll('.opcao');
   let acertou = false;
 
-  // Bloqueia e verifica
   opcoesEls.forEach((el, i) => {
     el.classList.add('bloqueado');
-    const ehCorreta = el.getAttribute('data-correta') === "true";
+    const isCorrect = el.getAttribute('data-is-correct') === "true";
 
-    if (ehCorreta) {
-      el.classList.add('correta'); // Sempre mostra a correta
-      if (i === indiceEscolhido) acertou = true;
-    } else if (i === indiceEscolhido) {
-      el.classList.add('errada'); // Marca a errada clicada
+    if (isCorrect) {
+      el.classList.add('correta');
+      if (i === index) acertou = true;
+    } else if (i === index) {
+      el.classList.add('errada');
     }
   });
 
   if (acertou) acertos++;
-  
-  // Atualiza a barra lá em cima
   atualizarBarra(indiceAtual, acertou);
-
   document.getElementById("btn-prox").style.display = "block";
+  
+  // Se tiver botão de dica, some ou desabilita pra não clicar depois de responder
+  const btnDica = document.querySelector(".btn-dica");
+  if(btnDica) btnDica.disabled = true;
 };
 
 window.proximaPergunta = function() {
@@ -226,14 +260,13 @@ window.proximaPergunta = function() {
 };
 
 // =======================
-// 7. TELA FINAL & CONFETE
+// RESULTADO
 // =======================
 function mostrarResultadoFinal() {
   const porcentagem = Math.round((acertos / perguntas.length) * 100);
   const aprovado = porcentagem >= 50;
-  
   const corTitulo = aprovado ? "#25A20C" : "#ef4444";
-  const mensagem = aprovado ? "Mandou bem, Guardião! 🛡️" : "Que pena, tente novamente! 📖";
+  const mensagem = aprovado ? "Mandou bem, Guardião! 🛡️" : "Que pena, continue treinando! 📖";
   const animacao = aprovado ? "Parabéns!" : "";
 
   quizContainer.innerHTML = `
@@ -259,21 +292,14 @@ function mostrarResultadoFinal() {
 }
 
 function soltarConfete() {
-  // Cria 50 pedacinhos de confete
   const cores = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
-  
   for (let i = 0; i < 50; i++) {
     const confete = document.createElement('div');
     confete.classList.add('confete');
-    
-    // Posição e cor aleatória
     confete.style.left = Math.random() * 100 + 'vw';
     confete.style.backgroundColor = cores[Math.floor(Math.random() * cores.length)];
-    confete.style.animationDuration = (Math.random() * 3 + 2) + 's'; // 2 a 5 segundos
-    
+    confete.style.animationDuration = (Math.random() * 3 + 2) + 's';
     document.body.appendChild(confete);
-    
-    // Remove do DOM depois de cair
     setTimeout(() => confete.remove(), 5000);
   }
 }
