@@ -1,3 +1,7 @@
+let perguntas = [];
+let perguntaAtual = 0;
+let respostas = [];
+
 // Detecta em qual página estamos
 const isIndex = document.getElementById("lista-quizes");
 const isQuiz = document.getElementById("quiz");
@@ -84,21 +88,7 @@ function parsePerguntas(md) {
 }
 
 function montarQuiz() {
-  perguntas.forEach((item, index) => {
-    const div = document.createElement("div");
-
-    div.innerHTML = `
-      <p><strong>${item.pergunta}</strong></p>
-      ${item.opcoes.map((op, i) => `
-        <label>
-          <input type="radio" name="p${index}" value="${i}">
-          ${op}
-        </label><br>
-      `).join("")}
-    `;
-
-    document.getElementById("quiz").appendChild(div);
-  });
+  mostrarPergunta();
 }
 
 function verResultado() {
@@ -111,4 +101,59 @@ function verResultado() {
 
   document.getElementById("resultado").innerText =
     `Você acertou ${pontos} de ${perguntas.length} 🙌`;
+}
+
+function mostrarPergunta() {
+  const quizDiv = document.getElementById("quiz");
+  quizDiv.innerHTML = "";
+
+  const p = perguntas[perguntaAtual];
+
+  const div = document.createElement("div");
+
+  div.innerHTML = `
+    <p class="pergunta"><strong>${p.pergunta}</strong></p>
+
+    ${p.opcoes.map((op, i) => `
+      <label class="opcao">
+        <input type="radio" name="resposta" value="${i}">
+        ${op}
+      </label>
+    `).join("")}
+
+    <button onclick="proximaPergunta()">Próxima</button>
+  `;
+
+  quizDiv.appendChild(div);
+}
+function proximaPergunta() {
+  const selecionada = document.querySelector('input[name="resposta"]:checked');
+
+  if (!selecionada) {
+    alert("Escolha uma opção 🙂");
+    return;
+  }
+
+  respostas[perguntaAtual] = Number(selecionada.value);
+  perguntaAtual++;
+
+  if (perguntaAtual < perguntas.length) {
+    mostrarPergunta();
+  } else {
+    mostrarResultado();
+  }
+}
+
+function mostrarResultado() {
+  let pontos = 0;
+
+  perguntas.forEach((p, i) => {
+    if (respostas[i] === p.correta) pontos++;
+  });
+
+  document.getElementById("quiz").innerHTML = `
+    <h2>Resultado 🙌</h2>
+    <p>Você acertou ${pontos} de ${perguntas.length}</p>
+    <button onclick="location.reload()">Refazer quiz</button>
+  `;
 }
