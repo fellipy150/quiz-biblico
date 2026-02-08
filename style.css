@@ -1,14 +1,15 @@
 /* =========================================
-   STYLE.CSS - Tema Guardiões da Palavra
+   STYLE.CSS - Compacto & Mobile (Tema Guardiões)
 ========================================= */
 
 :root {
-  --brand-green: #25A20C;   /* A cor solicitada */
-  --brand-dark: #1a7508;    /* Um tom mais escuro para botões/detalhes */
+  --brand-green: #25A20C;
+  --brand-dark: #1a7508;
   --white: #ffffff;
   --text-dark: #1f2937;
-  --error: #ef4444;         /* Vermelho para erro */
-  --radius: 20px;           /* Bordas bem arredondadas */
+  --text-light: #4b5563;
+  --error: #ef4444;
+  --radius: 16px; /* Reduzi um pouco o arredondamento para ficar proporcional */
 }
 
 * {
@@ -19,19 +20,18 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', system-ui, sans-serif;
-  /* Fundo verde solicitado */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--brand-green);
-  /* Adiciona um padrão sutil ou gradiente para ficar moderno */
-  background-image: linear-gradient(180deg, #25A20C 0%, #1a7508 100%);
+  /* Gradiente sutil para dar profundidade */
+  background-image: linear-gradient(180deg, #25A20C 0%, #176408 100%);
   color: var(--white);
   min-height: 100vh;
 }
 
 main {
-  max-width: 600px;
+  max-width: 500px; /* Reduzi a largura máxima para focar mais no centro */
   margin: 0 auto;
-  padding: 20px;
+  padding: 16px; /* Margem da tela reduzida */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -42,78 +42,80 @@ main {
 ===================== */
 .logo-container {
   text-align: center;
-  margin-bottom: 30px;
-  margin-top: 20px;
+  margin-bottom: 20px; /* Menos espaço embaixo da logo */
+  margin-top: 10px;
 }
 
 .logo-img {
-  max-width: 200px; /* Tamanho controlado da logo */
+  max-width: 140px; /* Logo menor para sobrar espaço pro conteúdo */
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); /* Sombra na logo */
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
 }
 
 h1 {
-  font-size: 1.5rem;
+  font-size: 1.3rem; /* Título menor */
   text-align: center;
   margin-bottom: 20px;
   font-weight: 800;
   text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  line-height: 1.2;
 }
 
 /* =====================
-   Cartões (Lista e Quiz)
+   Listas e Cartões
 ===================== */
 #lista-quizes, #quiz-container {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px; /* Espaço entre itens reduzido */
 }
 
-/* Item da lista de quizzes */
+/* Item da lista de quizzes (MENU) */
 #lista-quizes li a {
   display: block;
   background: var(--white);
   color: var(--text-dark);
-  padding: 22px;
+  padding: 16px 20px; /* Botão mais fino */
   border-radius: var(--radius);
   text-decoration: none;
-  font-weight: 700;
-  font-size: 1.2rem;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
+  font-weight: 600;
+  font-size: 1rem; /* Fonte tamanho padrão de leitura */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s, background 0.2s;
   text-align: center;
 }
 
 #lista-quizes li a:active {
-  transform: scale(0.98);
+  transform: scale(0.96);
+  background: #f0fdf4;
 }
 
 /* =====================
-   Área do Quiz
+   Área do Quiz (PERGUNTA)
 ===================== */
 .card-quiz {
   background: var(--white);
   color: var(--text-dark);
-  padding: 25px;
+  padding: 20px; /* Padding interno menor */
   border-radius: var(--radius);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
 .progresso {
-  font-size: 0.9rem;
-  color: #6b7280;
-  margin-bottom: 15px;
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-bottom: 10px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .pergunta {
-  font-size: 1.35rem;
-  font-weight: 800;
-  margin-bottom: 25px;
+  font-size: 1.15rem; /* Fonte da pergunta ajustada */
+  font-weight: 700;
+  margin-bottom: 20px;
   line-height: 1.4;
   color: #111;
 }
@@ -124,20 +126,19 @@ h1 {
 .opcao {
   display: flex;
   align-items: center;
-  padding: 18px;
-  margin-bottom: 12px;
-  background: #f3f4f6; /* Cinza claro fundo padrão */
-  border: 3px solid transparent;
-  border-radius: 16px;
+  padding: 14px 16px; /* Opções mais compactas */
+  margin-bottom: 10px;
+  background: #f8fafc;
+  border: 2px solid #e5e7eb; /* Borda sutil */
+  border-radius: 12px;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
+  font-weight: 500;
+  font-size: 1rem; /* Tamanho de texto ideal para mobile */
+  transition: all 0.2s ease;
   position: relative;
-  overflow: hidden;
+  line-height: 1.4;
 }
 
-/* Esconde o radio button nativo (vamos usar estilo visual) */
 .opcao input {
   display: none;
 }
@@ -146,69 +147,79 @@ h1 {
 
 /* Quando Certo */
 .opcao.correta {
-  background: #dcfce7; /* Verde bem claro */
+  background: #dcfce7;
   border-color: var(--brand-green);
   color: var(--brand-dark);
+  font-weight: 700;
 }
 .opcao.correta::after {
   content: "✓";
   position: absolute;
-  right: 20px;
+  right: 15px;
   font-weight: bold;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
 }
 
 /* Quando Errado */
 .opcao.errada {
-  background: #fee2e2; /* Vermelho claro */
+  background: #fee2e2;
   border-color: var(--error);
   color: #991b1b;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 .opcao.errada::after {
   content: "✕";
   position: absolute;
-  right: 20px;
+  right: 15px;
   font-weight: bold;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
 }
 
-/* Bloqueia cliques após responder */
 .bloqueado {
   pointer-events: none;
 }
 
 /* =====================
-   Botão Próxima
+   Botões e Links
 ===================== */
 #btn-prox {
-  background: var(--brand-dark); /* Verde escuro para destaque */
+  background: var(--brand-dark);
   color: white;
   border: none;
   width: 100%;
-  padding: 20px;
-  font-size: 1.2rem;
-  font-weight: bold;
+  padding: 16px; /* Botão menos alto */
+  font-size: 1.1rem;
+  font-weight: 700;
   border-radius: var(--radius);
-  margin-top: 20px;
+  margin-top: 15px;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  display: none; /* Começa escondido */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  display: none;
   animation: subir 0.3s ease forwards;
 }
 
+#btn-prox:active {
+  transform: translateY(2px);
+}
+
 @keyframes subir {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* =====================
-   Resultado e Botão Voltar
-===================== */
 .btn-voltar {
-  color: rgba(255,255,255,0.8);
+  color: rgba(255,255,255,0.9);
   text-decoration: none;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   display: inline-block;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* Ajustes para telas MUITO pequenas (iPhone SE antigo, etc) */
+@media (max-width: 360px) {
+  .pergunta { font-size: 1rem; }
+  .opcao { font-size: 0.9rem; padding: 12px; }
+  h1 { font-size: 1.2rem; }
 }
