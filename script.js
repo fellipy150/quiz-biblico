@@ -1,5 +1,5 @@
 // =========================================
-//  SCRIPT.JS - Guardiões (Shuffle Total + Dicas)
+//  SCRIPT.JS - Guardiões (V3 - Minimalista)
 // =========================================
 
 const listaEl = document.getElementById("lista-quizes");
@@ -12,10 +12,12 @@ let perguntas = [];
 let indiceAtual = 0;
 let acertos = 0;
 let respondido = false;
-let dicaUsadaGlobal = false; // Só pode usar 1 vez por jogo
 
-// Timer
-let tempoRestante = 20;
+// CONFIGURAÇÕES NOVAS
+let dicasRestantes = 2; // Começa com 2 dicas
+let tempoTotal = 30;    // 30 segundos por pergunta
+
+let tempoRestante = tempoTotal;
 let timerInterval;
 
 // =======================
@@ -70,19 +72,14 @@ if (quizContainer) {
 function processarMarkdown(md) {
   const linhas = md.replace(/\r\n/g, "\n").split("\n");
   
-  // 1. Pega Título
   const tituloRaw = linhas.find(l => l.startsWith("# "));
   if (tituloEl && tituloRaw) tituloEl.innerText = tituloRaw.replace("# ", "").trim();
 
-  // 2. Separa por Grupos (---)
-  // O regex ^---$ pega linhas que só tem traços
   const gruposRaw = md.split(/^---$/gm);
-  
   let todasPerguntasOrdenadas = [];
 
   gruposRaw.forEach(grupoTexto => {
-    // Para cada grupo, extraímos as perguntas
-    const blocos = grupoTexto.split(/^## /gm).slice(1); // slice(1) remove lixo antes do primeiro ##
+    const blocos = grupoTexto.split(/^## /gm).slice(1);
     
     let perguntasDoGrupo = blocos.map(bloco => {
       const lines = bloco.trim().split("\n");
@@ -92,17 +89,11 @@ function processarMarkdown(md) {
 
       lines.slice(1).forEach(linha => {
         const l = linha.trim();
-        
-        // Checkbox Correta [x]
         if (l.startsWith("[x]")) {
           opcoes.push({ texto: l.replace("[x]", "").trim(), correta: true });
-        }
-        // Checkbox Errada [ ]
-        else if (l.startsWith("[ ]")) {
+        } else if (l.startsWith("[ ]")) {
           opcoes.push({ texto: l.replace("[ ]", "").trim(), correta: false });
-        }
-        // Dica -#
-        else if (l.startsWith("-#")) {
+        } else if (l.startsWith("-#")) {
           dica = l.replace("-#", "").trim();
         }
       });
@@ -110,10 +101,7 @@ function processarMarkdown(md) {
       return { enunciado, opcoes, dica };
     });
 
-    // 3. Embaralha SÓ as perguntas DENTRO deste grupo
     perguntasDoGrupo = embaralhar(perguntasDoGrupo);
-
-    // Adiciona ao array principal mantendo a ordem dos grupos
     todasPerguntasOrdenadas = todasPerguntasOrdenadas.concat(perguntasDoGrupo);
   });
 
@@ -148,13 +136,10 @@ function renderizarPergunta() {
   const p = perguntas[indiceAtual];
   respondido = false;
 
-  // 4. Embaralhar as ALTERNATIVAS (Opções)
-  // Como já são objetos {texto, correta}, podemos embaralhar sem medo
   const opcoesEmbaralhadas = embaralhar([...p.opcoes]); 
 
   let htmlOpcoes = "";
   opcoesEmbaralhadas.forEach((op, index) => {
-    // Usamos o índice do array embaralhado para o ID
     htmlOpcoes += `
       <div class="opcao" id="op-${index}" 
            data-is-correct="${op.correta}" 
@@ -164,26 +149,34 @@ function renderizarPergunta() {
     `;
   });
 
-  // Botão de Dica (Se existir dica E não tiver usado a global)
+  // Lógica do Botão de Dica
   let htmlDica = "";
   if (p.dica) {
-    if (!dicaUsadaGlobal) {
-      htmlDica = `<button class="btn-dica" onclick="mostrarDica(this, '${p.dica.replace(/'/g, "&#39;")}')">💡 Usar Dica (Apenas 1 por jogo)</button>`;
-    } else {
-      htmlDica = `<button class="btn-dica" disabled>💡 Dica indisponível (já usada)</button>`;
-    }
+    // Só mostra o botão se ainda tiver dicas
+    const desabilitado = dicasRestantes <= 0 ? "disabled" : "";
+    const textoBotao = dicasRestantes > 0 ? "Ver Dica" : "Sem dicas";
+    
+    htmlDica = `
+      <div class="area-dica-container">
+        <button class="btn-dica-minimal" ${desabilitado} onclick="mostrarDica(this, '${p.dica.replace(/'/g, "&#39;")}')">
+          💡 ${textoBotao} <span class="contador-dica">${dicasRestantes}</span>
+        </button>
+        <div id="texto-dica-visivel"></div>
+      </div>
+    `;
   }
 
   quizContainer.innerHTML = `
     <div style="text-align:center">
-      <div id="display-tempo" class="timer-box">⏱️ 20s</div>
+      <div id="display-tempo" class="timer-box">⏱️ ${tempoTotal}s</div>
     </div>
     <div class="card-quiz">
       <div class="pergunta">${p.enunciado}</div>
       
-      <div id="area-dica">${htmlDica}</div>
-
       <div class="lista-opcoes">${htmlOpcoes}</div>
+      
+      ${htmlDica}
+
       <button id="btn-prox" onclick="proximaPergunta()">Próxima Pergunta ➜</button>
     </div>
   `;
@@ -195,15 +188,29 @@ function renderizarPergunta() {
 // LÓGICA DO JOGO
 // =======================
 function mostrarDica(btn, textoDica) {
-  if(dicaUsadaGlobal) return;
-  dicaUsadaGlobal = true;
+  if(dicasRestantes <= 0) return;
   
-  const area = document.getElementById("area-dica");
-  area.innerHTML = `<div class="box-dica-texto">💡 <strong>Dica:</strong> ${textoDica}</div>`;
+  dicasRestantes--; // Gasta uma dica
+  
+  // Atualiza visual do botão
+  const contador = btn.querySelector(".contador-dica");
+  if(contador) contador.innerText = dicasRestantes;
+  
+  if (dicasRestantes === 0) {
+    btn.innerHTML = `💡 Sem dicas <span class="contador-dica">0</span>`;
+    btn.disabled = true;
+  }
+
+  // Mostra o texto
+  const areaTexto = document.getElementById("texto-dica-visivel");
+  areaTexto.innerHTML = `<div class="box-dica-texto">${textoDica}</div>`;
+  
+  // Desabilita o botão atual para não clicar de novo na mesma pergunta
+  btn.disabled = true; 
 }
 
 function iniciarTimer() {
-  tempoRestante = 20;
+  tempoRestante = tempoTotal;
   clearInterval(timerInterval);
   const displayTimer = document.getElementById("display-tempo");
   if(displayTimer) displayTimer.innerText = `⏱️ ${tempoRestante}s`;
@@ -220,7 +227,7 @@ function iniciarTimer() {
 
 function tempoEsgotado() {
   if (respondido) return;
-  verificarResposta(-1); // -1 = Timeout
+  verificarResposta(-1);
   const titulo = document.querySelector(".pergunta");
   if(titulo) titulo.innerHTML += " <br><span style='color:red; font-size:0.9em'>(Tempo Esgotado!)</span>";
 }
@@ -249,8 +256,8 @@ window.verificarResposta = function(index) {
   atualizarBarra(indiceAtual, acertou);
   document.getElementById("btn-prox").style.display = "block";
   
-  // Se tiver botão de dica, some ou desabilita pra não clicar depois de responder
-  const btnDica = document.querySelector(".btn-dica");
+  // Trava o botão de dica se ainda não foi usado nesta pergunta
+  const btnDica = document.querySelector(".btn-dica-minimal");
   if(btnDica) btnDica.disabled = true;
 };
 
