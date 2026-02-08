@@ -1,3 +1,6 @@
+// =======================
+// Estado global do quiz
+// =======================
 let perguntas = [];
 let perguntaAtual = 0;
 let respostas = [];
@@ -47,21 +50,29 @@ if (isQuiz) {
     });
 }
 
-let perguntas = [];
-
+// =======================
+// Inicialização
+// =======================
 function iniciarQuiz(md) {
+  perguntas = [];
+  perguntaAtual = 0;
+  respostas = [];
+
   const linhas = md.split("\n");
 
-  // Título do quiz (# ...)
+  // Título do quiz
   if (linhas[0].startsWith("# ")) {
     document.getElementById("titulo").innerText =
       linhas[0].replace("# ", "").trim();
   }
 
   parsePerguntas(md);
-  montarQuiz();
+  mostrarPergunta();
 }
 
+// =======================
+// Parser do markdown
+// =======================
 function parsePerguntas(md) {
   const blocos = md.split("## ").slice(1);
 
@@ -87,22 +98,9 @@ function parsePerguntas(md) {
   });
 }
 
-function montarQuiz() {
-  mostrarPergunta();
-}
-
-function verResultado() {
-  let pontos = 0;
-
-  perguntas.forEach((item, index) => {
-    const r = document.querySelector(`input[name="p${index}"]:checked`);
-    if (r && Number(r.value) === item.correta) pontos++;
-  });
-
-  document.getElementById("resultado").innerText =
-    `Você acertou ${pontos} de ${perguntas.length} 🙌`;
-}
-
+// =======================
+// Renderização
+// =======================
 function mostrarPergunta() {
   const quizDiv = document.getElementById("quiz");
   quizDiv.innerHTML = "";
@@ -126,6 +124,10 @@ function mostrarPergunta() {
 
   quizDiv.appendChild(div);
 }
+
+// =======================
+// Navegação
+// =======================
 function proximaPergunta() {
   const selecionada = document.querySelector('input[name="resposta"]:checked');
 
@@ -144,6 +146,9 @@ function proximaPergunta() {
   }
 }
 
+// =======================
+// Resultado
+// =======================
 function mostrarResultado() {
   let pontos = 0;
 
