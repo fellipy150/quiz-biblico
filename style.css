@@ -155,3 +155,78 @@ h1 { font-size: 1.3rem; margin-bottom: 20px; text-align: center; }
 
 #canvas-confete { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
 .btn-voltar { color: rgba(255,255,255,0.8); text-decoration: none; margin-bottom: 15px; display: block; font-size: 0.9rem; }
+
+/* =========================================
+   RANKING & MODAL
+========================================= */
+
+/* Botão Flutuante */
+.floating-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  color: var(--brand-dark);
+  border: none;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  cursor: pointer;
+  z-index: 100;
+  transition: transform 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.floating-btn:hover { transform: scale(1.1); }
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  z-index: 2000;
+  display: flex; justify-content: center; align-items: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  max-height: 80vh;
+  overflow-y: auto;
+  max-width: 400px;
+  width: 100%;
+}
+
+/* Lista de Ranking */
+#lista-ranking-container {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.rank-item {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #f3f4f6; padding: 12px; border-radius: 8px;
+  font-size: 0.95rem; font-weight: 600; color: #374151;
+}
+
+.rank-pos {
+  background: var(--brand-dark); color: white;
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; margin-right: 10px;
+}
+
+/* Input de Nome no Final */
+#input-nome-jogador {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.2rem;
+  text-align: center;
+  text-transform: uppercase;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  margin: 15px 0;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+#input-nome-jogador:focus { border-color: var(--brand-green); outline: none; }

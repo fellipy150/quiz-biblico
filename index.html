@@ -39,5 +39,23 @@
   </main>
 
   <script src="script.js"></script>
+
+<button id="btn-abrir-ranking" class="floating-btn" onclick="abrirRanking()">
+  🏆 Ranking
+</button>
+
+<div id="modal-ranking" class="modal-overlay" style="display:none;">
+  <div class="card-quiz modal-content">
+    <h2 style="color:var(--brand-green); margin-top:0;">🏆 Top 10 Guardiões</h2>
+    
+    <div id="lista-ranking-loader" style="text-align:center;">Carregando...</div>
+    <ul id="lista-ranking-container"></ul>
+
+    <button onclick="fecharRanking()" style="background:#ef4444; color:white; padding:10px; border:none; border-radius:8px; margin-top:15px; cursor:pointer;">Fechar</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="script.js"></script>
 </body>
 </html>
