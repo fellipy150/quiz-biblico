@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz - Guardiões</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <main>
+    <a href="index.html" class="btn-voltar">← Voltar ao início</a>
+    
+    <h1 id="titulo-quiz">Carregando...</h1>
+
+    <div id="tela-selecao" style="display:none;">
+      
+      <div class="card-modo" onclick="iniciarJogo('normal')">
+        <h3>🛡️ Modo Normal</h3>
+        <p>30 segundos por questão.</p>
+      </div>
+
+      <div class="card-modo desafio" onclick="iniciarJogo('desafio')">
+        <h3>🔥 Modo Desafio</h3>
+        <p>15 segundos por questão. Errou, fim de jogo.</p>
+      </div>
+
+    </div>
+
+    <div id="barra-progresso-container"></div>
+
+    <div style="text-align:center; width:100%;">
+      <div id="display-tempo" class="timer-box" style="display:none;"></div>
+    </div>
+
+    <div id="quiz-stage"></div>
+  </main>
+
+  <canvas id="canvas-confete"></canvas>
+
+  <script src="script.js"></script>
+</body>
+</html>
