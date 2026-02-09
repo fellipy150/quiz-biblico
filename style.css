@@ -1,6 +1,7 @@
 /* =========================================
-   STYLE.CSS - Guardiões (Com Dicas e Grupos)
+   STYLE.CSS - Guardiões (V4 - Animado)
 ========================================= */
+
 :root {
   --brand-green: #25A20C;
   --brand-dark: #1a7508;
@@ -8,7 +9,6 @@
   --text-dark: #1f2937;
   --error: #ef4444;
   --radius: 16px;
-  --yellow-alert: #eab308; /* Cor da dica */
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -20,11 +20,13 @@ body {
   background-image: linear-gradient(180deg, #25A20C 0%, #176408 100%);
   color: var(--white);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 main {
   max-width: 500px; margin: 0 auto; padding: 16px;
   display: flex; flex-direction: column; align-items: center;
+  position: relative; /* Importante para o confete */
 }
 
 /* LOGO */
@@ -40,17 +42,75 @@ h1 { font-size: 1.3rem; margin-bottom: 20px; text-align: center; }
   font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center;
 }
 
-/* BARRA DE PROGRESSO */
-#barra-progresso-container { display: flex; gap: 4px; width: 100%; margin-bottom: 15px; height: 8px; }
-.segmento-barra { flex: 1; background-color: rgba(255,255,255,0.3); border-radius: 4px; transition: background 0.3s; }
-.segmento-barra.correto { background-color: #a3e635; box-shadow: 0 0 5px #a3e635; }
-.segmento-barra.errado { background-color: #f87171; }
+/* --- BARRA DE PROGRESSO TIPO STORIES --- */
+#barra-progresso-container {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  margin-bottom: 15px;
+  height: 6px; /* Um pouco mais fina */
+}
 
-/* TIMER */
+.segmento-barra {
+  flex: 1;
+  background-color: rgba(255,255,255,0.3);
+  border-radius: 4px;
+  overflow: hidden; /* Para a barra interna não vazar */
+  position: relative;
+}
+
+/* A barra que enche */
+.fill-tempo {
+  height: 100%;
+  width: 0%;
+  background-color: #ffffff;
+  opacity: 0.8;
+  border-radius: 4px;
+  transition: width linear; /* A duração será definida no JS */
+}
+
+/* Estados Finais (sobrescrevem o fill) */
+.segmento-barra.correto { background-color: #a3e635; box-shadow: 0 0 8px #a3e635; }
+.segmento-barra.correto .fill-tempo { display: none; } /* Esconde o fill branco */
+
+.segmento-barra.errado { background-color: #f87171; }
+.segmento-barra.errado .fill-tempo { display: none; }
+
+/* TIMER TEXTO */
 .timer-box { background: rgba(0,0,0,0.2); padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; display: inline-block; }
 
-/* QUIZ CARD */
-.card-quiz { background: var(--white); color: var(--text-dark); padding: 20px; border-radius: var(--radius); box-shadow: 0 8px 20px rgba(0,0,0,0.2); width: 100%; position: relative; }
+/* --- QUIZ CARD E ANIMAÇÕES --- */
+.card-quiz {
+  background: var(--white);
+  color: var(--text-dark);
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  width: 100%;
+  position: relative;
+  /* Prepara para animação */
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Animação de Saída (Vai para esquerda) */
+.slide-out-left {
+  transform: translateX(-50px);
+  opacity: 0;
+}
+
+/* Animação de Entrada (Vem da direita) */
+/* Usaremos keyframe para a entrada ser mais controlada */
+@keyframes slideInRight {
+  from { transform: translateX(50px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.anime-entrada {
+  animation: slideInRight 0.4s ease forwards;
+}
+
 .pergunta { font-size: 1.15rem; font-weight: 700; margin-bottom: 15px; color: #111; line-height: 1.4; }
 
 /* OPÇÕES */
@@ -66,91 +126,34 @@ h1 { font-size: 1.3rem; margin-bottom: 20px; text-align: center; }
 .opcao.errada::after { content: "✕"; font-weight: bold; font-size: 1.2rem; }
 .bloqueado { pointer-events: none; }
 
-
-
-
-
-
-
-/* ... Mantenha o restante do CSS igual, SUBSTITUA APENAS A PARTE DE DICAS E BOTÕES ... */
-
-/* --- BOTÕES DE AÇÃO --- */
+/* BOTÕES E DICAS */
 #btn-prox {
-  background: var(--brand-dark);
-  color: white;
-  border: none;
-  width: 100%;
-  padding: 16px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  border-radius: var(--radius);
-  margin-top: 20px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  display: none; /* Começa escondido */
+  background: var(--brand-dark); color: white; border: none; width: 100%;
+  padding: 16px; font-size: 1.1rem; font-weight: 700; border-radius: var(--radius);
+  margin-top: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  display: none;
   animation: subir 0.3s ease forwards;
 }
+@keyframes subir { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-/* --- ÁREA DA DICA (MINIMALISTA) --- */
-.area-dica-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end; /* Alinha à direita */
-  margin-top: 15px;
-}
-
+.area-dica-container { width: 100%; display: flex; flex-direction: column; align-items: flex-end; margin-top: 15px; }
 .btn-dica-minimal {
-  background: transparent;
-  border: 1px solid #e5e7eb;
-  color: #6b7280;
-  padding: 8px 16px;
-  border-radius: 20px; /* Formato de pílula */
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s;
+  background: transparent; border: 1px solid #e5e7eb; color: #6b7280;
+  padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;
 }
+.contador-dica { background-color: #fee2e2; color: #ef4444; font-size: 0.8rem; font-weight: 800; padding: 2px 8px; border-radius: 10px; }
+.box-dica-texto { width: 100%; margin-top: 10px; background: #fffbeb; border-left: 3px solid #fbbf24; padding: 12px; font-size: 0.95rem; color: #92400e; border-radius: 6px; animation: fadeIn 0.3s ease; }
 
-.btn-dica-minimal:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
-}
-
-.btn-dica-minimal:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* O Contador Vermelho */
-.contador-dica {
-  background-color: #fee2e2;
-  color: #ef4444;
-  font-size: 0.8rem;
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 10px;
-}
-
-/* Texto da Dica quando revelada */
-.box-dica-texto {
+/* CANVAS CONFETE */
+#canvas-confete {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  margin-top: 10px;
-  background: #fffbeb;
-  border-left: 3px solid #fbbf24; /* Amarelo sutil */
-  padding: 12px;
-  font-size: 0.95rem;
-  color: #92400e;
-  border-radius: 6px;
-  line-height: 1.4;
-  animation: fadeIn 0.3s ease;
+  height: 100%;
+  pointer-events: none; /* Deixa clicar através dele */
+  z-index: 9999;
 }
 
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
-/* CONFETE */
-.confete { position: absolute; width: 10px; height: 10px; z-index: 999; }
 .btn-voltar { color: rgba(255,255,255,0.8); text-decoration: none; margin-bottom: 15px; display: block; font-size: 0.9rem; }

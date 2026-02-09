@@ -1,5 +1,5 @@
 // =========================================
-//  SCRIPT.JS - Guardiões (V3 - Minimalista)
+//  SCRIPT.JS - Guardiões (V4 - Animations)
 // =========================================
 
 const listaEl = document.getElementById("lista-quizes");
@@ -7,16 +7,15 @@ const quizContainer = document.getElementById("quiz-container");
 const barraProgressoEl = document.getElementById("barra-progresso-container");
 const tituloEl = document.getElementById("titulo-quiz");
 
-// Estado do Jogo
+// Estado
 let perguntas = [];
 let indiceAtual = 0;
 let acertos = 0;
 let respondido = false;
 
-// CONFIGURAÇÕES NOVAS
-let dicasRestantes = 2; // Começa com 2 dicas
-let tempoTotal = 30;    // 30 segundos por pergunta
-
+// Configs
+let dicasRestantes = 2;
+let tempoTotal = 30;
 let tempoRestante = tempoTotal;
 let timerInterval;
 
@@ -59,7 +58,7 @@ if (quizContainer) {
       })
       .catch((e) => {
         console.error(e);
-        quizContainer.innerHTML = "<p>Erro ao carregar (verifique o formato do MD).</p>";
+        quizContainer.innerHTML = "<p>Erro ao carregar.</p>";
       });
   } else {
     window.location.href = "index.html";
@@ -67,11 +66,10 @@ if (quizContainer) {
 }
 
 // =======================
-// PARSER (Grupos + Checkbox + Dicas)
+// PARSER
 // =======================
 function processarMarkdown(md) {
   const linhas = md.replace(/\r\n/g, "\n").split("\n");
-  
   const tituloRaw = linhas.find(l => l.startsWith("# "));
   if (tituloEl && tituloRaw) tituloEl.innerText = tituloRaw.replace("# ", "").trim();
 
@@ -80,7 +78,6 @@ function processarMarkdown(md) {
 
   gruposRaw.forEach(grupoTexto => {
     const blocos = grupoTexto.split(/^## /gm).slice(1);
-    
     let perguntasDoGrupo = blocos.map(bloco => {
       const lines = bloco.trim().split("\n");
       const enunciado = lines[0].trim();
@@ -89,22 +86,15 @@ function processarMarkdown(md) {
 
       lines.slice(1).forEach(linha => {
         const l = linha.trim();
-        if (l.startsWith("[x]")) {
-          opcoes.push({ texto: l.replace("[x]", "").trim(), correta: true });
-        } else if (l.startsWith("[ ]")) {
-          opcoes.push({ texto: l.replace("[ ]", "").trim(), correta: false });
-        } else if (l.startsWith("-#")) {
-          dica = l.replace("-#", "").trim();
-        }
+        if (l.startsWith("[x]")) opcoes.push({ texto: l.replace("[x]", "").trim(), correta: true });
+        else if (l.startsWith("[ ]")) opcoes.push({ texto: l.replace("[ ]", "").trim(), correta: false });
+        else if (l.startsWith("-#")) dica = l.replace("-#", "").trim();
       });
-
       return { enunciado, opcoes, dica };
     });
-
     perguntasDoGrupo = embaralhar(perguntasDoGrupo);
     todasPerguntasOrdenadas = todasPerguntasOrdenadas.concat(perguntasDoGrupo);
   });
-
   perguntas = todasPerguntasOrdenadas;
 }
 
@@ -118,6 +108,12 @@ function renderizarBarraProgresso() {
     const seg = document.createElement("div");
     seg.classList.add("segmento-barra");
     seg.id = `seg-${i}`;
+    
+    // Adiciona o elemento de preenchimento interno
+    const fill = document.createElement("div");
+    fill.classList.add("fill-tempo");
+    seg.appendChild(fill);
+    
     barraProgressoEl.appendChild(seg);
   });
 }
@@ -125,6 +121,25 @@ function renderizarBarraProgresso() {
 function atualizarBarra(indice, acertou) {
   const seg = document.getElementById(`seg-${indice}`);
   if (seg) seg.classList.add(acertou ? "correto" : "errado");
+}
+
+// Função para iniciar a animação da barra "Stories"
+function animarBarra(indice) {
+  const seg = document.getElementById(`seg-${indice}`);
+  if (!seg) return;
+  const fill = seg.querySelector(".fill-tempo");
+  if (!fill) return;
+
+  // Reseta primeiro
+  fill.style.transition = "none";
+  fill.style.width = "0%";
+  
+  // Força um reflow para o navegador entender que zerou
+  void fill.offsetWidth;
+
+  // Inicia a animação sincronizada com o tempoTotal
+  fill.style.transition = `width ${tempoTotal}s linear`;
+  fill.style.width = "100%";
 }
 
 function renderizarPergunta() {
@@ -149,13 +164,10 @@ function renderizarPergunta() {
     `;
   });
 
-  // Lógica do Botão de Dica
   let htmlDica = "";
   if (p.dica) {
-    // Só mostra o botão se ainda tiver dicas
     const desabilitado = dicasRestantes <= 0 ? "disabled" : "";
     const textoBotao = dicasRestantes > 0 ? "Ver Dica" : "Sem dicas";
-    
     htmlDica = `
       <div class="area-dica-container">
         <button class="btn-dica-minimal" ${desabilitado} onclick="mostrarDica(this, '${p.dica.replace(/'/g, "&#39;")}')">
@@ -166,21 +178,21 @@ function renderizarPergunta() {
     `;
   }
 
+  // Renderiza com a classe de animação de entrada
   quizContainer.innerHTML = `
     <div style="text-align:center">
       <div id="display-tempo" class="timer-box">⏱️ ${tempoTotal}s</div>
     </div>
-    <div class="card-quiz">
+    <div class="card-quiz anime-entrada" id="card-ativo">
       <div class="pergunta">${p.enunciado}</div>
-      
       <div class="lista-opcoes">${htmlOpcoes}</div>
-      
       ${htmlDica}
-
-      <button id="btn-prox" onclick="proximaPergunta()">Próxima Pergunta ➜</button>
+      <button id="btn-prox" onclick="transicaoProximaPergunta()">Próxima Pergunta ➜</button>
     </div>
   `;
 
+  // Inicia barra e timer
+  animarBarra(indiceAtual);
   iniciarTimer();
 }
 
@@ -189,23 +201,15 @@ function renderizarPergunta() {
 // =======================
 function mostrarDica(btn, textoDica) {
   if(dicasRestantes <= 0) return;
-  
-  dicasRestantes--; // Gasta uma dica
-  
-  // Atualiza visual do botão
+  dicasRestantes--;
   const contador = btn.querySelector(".contador-dica");
   if(contador) contador.innerText = dicasRestantes;
-  
   if (dicasRestantes === 0) {
     btn.innerHTML = `💡 Sem dicas <span class="contador-dica">0</span>`;
     btn.disabled = true;
   }
-
-  // Mostra o texto
   const areaTexto = document.getElementById("texto-dica-visivel");
   areaTexto.innerHTML = `<div class="box-dica-texto">${textoDica}</div>`;
-  
-  // Desabilita o botão atual para não clicar de novo na mesma pergunta
   btn.disabled = true; 
 }
 
@@ -237,13 +241,21 @@ window.verificarResposta = function(index) {
   respondido = true;
   clearInterval(timerInterval);
 
+  // Para a animação da barra na posição atual
+  const seg = document.getElementById(`seg-${indiceAtual}`);
+  const fill = seg.querySelector(".fill-tempo");
+  if(fill) {
+    const computedWidth = window.getComputedStyle(fill).width;
+    fill.style.transition = "none";
+    fill.style.width = computedWidth;
+  }
+
   const opcoesEls = document.querySelectorAll('.opcao');
   let acertou = false;
 
   opcoesEls.forEach((el, i) => {
     el.classList.add('bloqueado');
     const isCorrect = el.getAttribute('data-is-correct') === "true";
-
     if (isCorrect) {
       el.classList.add('correta');
       if (i === index) acertou = true;
@@ -253,17 +265,32 @@ window.verificarResposta = function(index) {
   });
 
   if (acertou) acertos++;
-  atualizarBarra(indiceAtual, acertou);
-  document.getElementById("btn-prox").style.display = "block";
   
-  // Trava o botão de dica se ainda não foi usado nesta pergunta
+  // Atualiza a barra para a cor final (verde/vermelho)
+  // Pequeno delay para usuário ver a barra parando antes de ficar verde
+  setTimeout(() => {
+    atualizarBarra(indiceAtual, acertou);
+  }, 200);
+
+  document.getElementById("btn-prox").style.display = "block";
   const btnDica = document.querySelector(".btn-dica-minimal");
   if(btnDica) btnDica.disabled = true;
 };
 
-window.proximaPergunta = function() {
-  indiceAtual++;
-  renderizarPergunta();
+// NOVA FUNÇÃO: Transição Animada
+window.transicaoProximaPergunta = function() {
+  const card = document.getElementById("card-ativo");
+  if(card) {
+    // Adiciona a classe que joga para a esquerda
+    card.classList.remove("anime-entrada");
+    card.classList.add("slide-out-left");
+  }
+
+  // Espera a animação (300ms) terminar antes de renderizar a próxima
+  setTimeout(() => {
+    indiceAtual++;
+    renderizarPergunta();
+  }, 300);
 };
 
 // =======================
@@ -277,7 +304,7 @@ function mostrarResultadoFinal() {
   const animacao = aprovado ? "Parabéns!" : "";
 
   quizContainer.innerHTML = `
-    <div class="card-quiz" style="text-align:center;">
+    <div class="card-quiz anime-entrada" style="text-align:center;">
       <h2>${animacao}</h2>
       <div style="font-size: 4rem; color: ${corTitulo}; font-weight:800; margin: 20px 0;">
         ${porcentagem}%
@@ -295,18 +322,55 @@ function mostrarResultadoFinal() {
     </div>
   `;
 
-  if (aprovado) soltarConfete();
+  if (aprovado) dispararConfete();
 }
 
-function soltarConfete() {
-  const cores = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
-  for (let i = 0; i < 50; i++) {
-    const confete = document.createElement('div');
-    confete.classList.add('confete');
-    confete.style.left = Math.random() * 100 + 'vw';
-    confete.style.backgroundColor = cores[Math.floor(Math.random() * cores.length)];
-    confete.style.animationDuration = (Math.random() * 3 + 2) + 's';
-    document.body.appendChild(confete);
-    setTimeout(() => confete.remove(), 5000);
+// =======================
+// SISTEMA DE CONFETE (CANVAS)
+// =======================
+function dispararConfete() {
+  const canvas = document.getElementById("canvas-confete");
+  if(!canvas) return;
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const confetes = [];
+  const cores = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+
+  for (let i = 0; i < 100; i++) {
+    confetes.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      w: Math.random() * 10 + 5,
+      h: Math.random() * 10 + 5,
+      color: cores[Math.floor(Math.random() * cores.length)],
+      speed: Math.random() * 3 + 2,
+      angle: Math.random() * 360
+    });
   }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confetes.forEach((c) => {
+      ctx.fillStyle = c.color;
+      ctx.beginPath();
+      ctx.rect(c.x, c.y, c.w, c.h);
+      ctx.fill();
+      c.y += c.speed;
+      c.x += Math.sin(c.angle) * 0.5; // leve balanço
+      c.angle += 0.1;
+      
+      // Se passar da tela, volta pro topo
+      if (c.y > canvas.height) c.y = -10;
+    });
+    requestAnimationFrame(draw);
+  }
+  
+  draw();
+  
+  // Para depois de 5 segundos
+  setTimeout(() => {
+    canvas.width = 0; // Limpa o canvas
+  }, 5000);
 }
