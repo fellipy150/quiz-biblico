@@ -1,5 +1,5 @@
 // =========================================
-//  SCRIPT.JS - Guardiões (V5 - Smooth)
+//  SCRIPT.JS - Guardiões (V6 - Game Modes)
 // =========================================
 
 const listaEl = document.getElementById("lista-quizes");
@@ -7,16 +7,18 @@ const quizStage = document.getElementById("quiz-stage");
 const barraProgressoEl = document.getElementById("barra-progresso-container");
 const tituloEl = document.getElementById("titulo-quiz");
 const displayTempoEl = document.getElementById("display-tempo");
+const telaSelecaoEl = document.getElementById("tela-selecao");
 
 // Estado
 let perguntas = [];
 let indiceAtual = 0;
 let acertos = 0;
 let respondido = false;
+let modoJogo = null; // 'normal' | 'desafio'
 
 // Configs
 let dicasRestantes = 2;
-let tempoTotal = 30;
+let tempoTotal = 30; // Será alterado baseado no modo
 let tempoRestante = tempoTotal;
 let timerInterval;
 
@@ -32,7 +34,7 @@ function embaralhar(array) {
 }
 
 // =======================
-// CARREGAMENTO
+// CARREGAMENTO & MENU
 // =======================
 if (listaEl) {
   fetch("quizes/index.json")
@@ -54,17 +56,50 @@ if (quizStage) {
       .then(res => res.text())
       .then(text => {
         processarMarkdown(text);
-        renderizarBarraProgresso();
-        // Primeira renderização direta
-        adicionarNovaPergunta(perguntas[0], false);
+        mostrarSelecaoModo(); // AGORA PARAMOS AQUI!
       })
       .catch((e) => {
         console.error(e);
         quizStage.innerHTML = "<p>Erro ao carregar.</p>";
+        quizStage.style.display = 'block';
       });
   } else {
     window.location.href = "index.html";
   }
+}
+
+function mostrarSelecaoModo() {
+  if (telaSelecaoEl) telaSelecaoEl.style.display = "flex";
+  if (quizStage) quizStage.style.display = "none";
+  if (barraProgressoEl) barraProgressoEl.style.display = "none";
+}
+
+// =======================
+// INICIALIZAÇÃO DO JOGO
+// =======================
+window.iniciarJogo = function(modo) {
+  modoJogo = modo;
+  indiceAtual = 0;
+  acertos = 0;
+  dicasRestantes = 2; // Reseta dicas
+
+  // Configurações por modo
+  if (modo === 'desafio') {
+    tempoTotal = 15;
+    document.body.classList.add('modo-desafio'); // Fundo verde escuro
+  } else {
+    tempoTotal = 30;
+    document.body.classList.remove('modo-desafio');
+  }
+
+  // Esconde Seleção e Mostra Jogo
+  telaSelecaoEl.style.display = "none";
+  quizStage.style.display = "grid";
+  barraProgressoEl.style.display = "flex";
+  if(displayTempoEl) displayTempoEl.style.display = "block";
+
+  renderizarBarraProgresso();
+  adicionarNovaPergunta(perguntas[0], false);
 }
 
 // =======================
@@ -101,7 +136,7 @@ function processarMarkdown(md) {
 }
 
 // =======================
-// RENDERIZAÇÃO & ANIMAÇÃO
+// RENDERIZAÇÃO
 // =======================
 function renderizarBarraProgresso() {
   if (!barraProgressoEl) return;
@@ -130,17 +165,18 @@ function animarBarra(indice) {
 
   fill.style.transition = "none";
   fill.style.width = "0%";
-  void fill.offsetWidth; // Reflow
+  void fill.offsetWidth; 
   fill.style.transition = `width ${tempoTotal}s linear`;
   fill.style.width = "100%";
 }
 
-// --- FUNÇÃO CORE: Adiciona Card com Animação ---
 function adicionarNovaPergunta(p, comAnimacao = true) {
   respondido = false;
-  if(displayTempoEl) displayTempoEl.style.display = "block";
+  if(displayTempoEl) {
+    displayTempoEl.style.display = "block";
+    displayTempoEl.classList.remove("danger"); // Remove alerta vermelho se tiver
+  }
 
-  // 1. Gera o HTML do novo card
   const opcoesEmbaralhadas = embaralhar([...p.opcoes]);
   let htmlOpcoes = "";
   opcoesEmbaralhadas.forEach((op, index) => {
@@ -165,7 +201,6 @@ function adicionarNovaPergunta(p, comAnimacao = true) {
       </div>`;
   }
 
-  // Cria o elemento DOM
   const novoCard = document.createElement('div');
   novoCard.className = 'card-quiz';
   novoCard.innerHTML = `
@@ -175,38 +210,28 @@ function adicionarNovaPergunta(p, comAnimacao = true) {
     <button id="btn-prox" onclick="transicaoProximaPergunta()">Próxima Pergunta ➜</button>
   `;
 
-  // 2. Se for animação, prepara posição inicial
   if (comAnimacao) {
     novoCard.classList.add('pre-render-direita');
   } else {
     novoCard.classList.add('ativo');
   }
 
-  // 3. Adiciona ao Palco
   quizStage.appendChild(novoCard);
 
-  // 4. Se tiver animação, executa a troca
   if (comAnimacao) {
-    // Pega o card antigo (que está ativo atualmente)
     const cardAntigo = quizStage.querySelector('.card-quiz.ativo');
-    
-    // Força reflow para o navegador entender a posição inicial do novo card
     void novoCard.offsetWidth; 
     
-    // Dispara animações
     if (cardAntigo) {
       cardAntigo.classList.remove('ativo');
       cardAntigo.classList.add('saindo-esquerda');
-      // Remove do DOM após a animação acabar (0.5s)
       setTimeout(() => cardAntigo.remove(), 500);
     }
     
-    // Traz o novo card para o centro
     novoCard.classList.remove('pre-render-direita');
     novoCard.classList.add('ativo');
   }
 
-  // Inicia lógica de tempo
   animarBarra(indiceAtual);
   iniciarTimer();
 }
@@ -217,19 +242,15 @@ function adicionarNovaPergunta(p, comAnimacao = true) {
 function mostrarDica(btn, textoDica) {
   if(dicasRestantes <= 0) return;
   dicasRestantes--;
-  
   const contador = btn.querySelector(".contador-dica");
   if(contador) contador.innerText = dicasRestantes;
   if (dicasRestantes === 0) {
     btn.innerHTML = `💡 Sem dicas <span class="contador-dica">0</span>`;
     btn.disabled = true;
   }
-  
-  // Encontra a div de texto dentro do card atual
   const currentCard = document.querySelector('.card-quiz.ativo');
   const areaTexto = currentCard.querySelector(".texto-dica-placeholder");
   if(areaTexto) areaTexto.innerHTML = `<div class="box-dica-texto">${textoDica}</div>`;
-  
   btn.disabled = true; 
 }
 
@@ -241,6 +262,7 @@ function iniciarTimer() {
   timerInterval = setInterval(() => {
     tempoRestante--;
     if(displayTempoEl) displayTempoEl.innerText = `⏱️ ${tempoRestante}s`;
+    
     if (tempoRestante <= 0) {
       clearInterval(timerInterval);
       tempoEsgotado();
@@ -250,8 +272,15 @@ function iniciarTimer() {
 
 function tempoEsgotado() {
   if (respondido) return;
-  verificarResposta(-1, null); // -1 = erro/tempo
   
+  // No Modo Desafio, Tempo esgotado = Game Over direto
+  if (modoJogo === 'desafio') {
+    gameOverDesafio("O tempo acabou!");
+    return;
+  }
+
+  // Modo Normal segue vida
+  verificarResposta(-1, null); 
   const currentCard = document.querySelector('.card-quiz.ativo');
   const titulo = currentCard.querySelector(".pergunta");
   if(titulo) titulo.innerHTML += " <br><span style='color:red; font-size:0.9em'>(Tempo Esgotado!)</span>";
@@ -259,10 +288,10 @@ function tempoEsgotado() {
 
 window.verificarResposta = function(index, elementoClicado) {
   if (respondido) return;
-  respondido = true;
+  
   clearInterval(timerInterval);
 
-  // Para barra
+  // Para animação da barra
   const seg = document.getElementById(`seg-${indiceAtual}`);
   const fill = seg.querySelector(".fill-tempo");
   if(fill) {
@@ -271,11 +300,11 @@ window.verificarResposta = function(index, elementoClicado) {
     fill.style.width = computedWidth;
   }
 
-  // UI Feedback
   const currentCard = document.querySelector('.card-quiz.ativo');
   const opcoesEls = currentCard.querySelectorAll('.opcao');
   let acertou = false;
 
+  // Lógica de verificação
   opcoesEls.forEach((el, i) => {
     el.classList.add('bloqueado');
     const isCorrect = el.getAttribute('data-is-correct') === "true";
@@ -287,9 +316,17 @@ window.verificarResposta = function(index, elementoClicado) {
     }
   });
 
+  // --- LÓGICA MODO DESAFIO (SUDDEN DEATH) ---
+  if (modoJogo === 'desafio' && !acertou) {
+    // Delay pequeno para ver que errou, depois GAME OVER
+    setTimeout(() => {
+      gameOverDesafio("Você errou!");
+    }, 1000);
+    return;
+  }
+
   if (acertou) acertos++;
   
-  // Delay visual para pintar a barra de cima
   setTimeout(() => {
     atualizarBarra(indiceAtual, acertou);
   }, 200);
@@ -301,6 +338,30 @@ window.verificarResposta = function(index, elementoClicado) {
   if(btnDica) btnDica.disabled = true;
 };
 
+// --- GAME OVER TELA (Desafio) ---
+function gameOverDesafio(motivo) {
+  quizStage.innerHTML = "";
+  if(displayTempoEl) displayTempoEl.style.display = "none";
+  if(barraProgressoEl) barraProgressoEl.style.display = "none";
+
+  const cardErro = document.createElement('div');
+  cardErro.className = 'card-quiz anime-entrada';
+  cardErro.style.textAlign = 'center';
+  cardErro.style.border = "2px solid #ef4444";
+  
+  cardErro.innerHTML = `
+    <h2 style="font-size:3rem; margin:0;">☠️</h2>
+    <h3 style="color:#ef4444; margin-top:10px;">Fim de Jogo!</h3>
+    <p style="font-size:1.2rem;">${motivo}</p>
+    <p>No Modo Desafio não são permitidos erros.</p>
+    
+    <button onclick="location.reload()" style="background:#ef4444; color:white; padding:15px 30px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer; margin-top:20px;">
+      Tentar Novamente
+    </button>
+  `;
+  quizStage.appendChild(cardErro);
+}
+
 window.transicaoProximaPergunta = function() {
   indiceAtual++;
   if (indiceAtual >= perguntas.length) {
@@ -311,27 +372,46 @@ window.transicaoProximaPergunta = function() {
 };
 
 // =======================
-// RESULTADO
+// RESULTADO FINAL
 // =======================
 function mostrarResultadoFinal() {
   const porcentagem = Math.round((acertos / perguntas.length) * 100);
-  const aprovado = porcentagem >= 50;
-  const corTitulo = aprovado ? "#25A20C" : "#ef4444";
-  const mensagem = aprovado ? "Mandou bem, Guardião! 🛡️" : "Que pena, continue treinando! 📖";
-  const animacao = aprovado ? "Parabéns!" : "";
+  
+  // Customização para Vitória no Desafio
+  let titulo, mensagem, cor, animacao;
+
+  if (modoJogo === 'desafio') {
+    // Se chegou aqui no modo desafio, é pq ACERTOU TUDO
+    titulo = "DESAFIO VENCIDO!";
+    mensagem = "Você provou ser um Guardião de Elite! 🏆🔥";
+    cor = "#10b981"; // Verde vitoria
+    animacao = "LENDÁRIO!";
+  } else {
+    // Modo Normal
+    const aprovado = porcentagem >= 50;
+    cor = aprovado ? "#25A20C" : "#ef4444";
+    mensagem = aprovado ? "Mandou bem, Guardião! 🛡️" : "Que pena, continue treinando! 📖";
+    animacao = aprovado ? "Parabéns!" : "";
+  }
 
   if(displayTempoEl) displayTempoEl.style.display = "none";
 
-  // Limpa o palco e adiciona card de resultado
   quizStage.innerHTML = "";
   
   const cardResultado = document.createElement('div');
-  cardResultado.className = 'card-quiz anime-entrada'; // Usa animação padrão CSS
+  cardResultado.className = 'card-quiz anime-entrada';
   cardResultado.style.textAlign = 'center';
+  
+  // Se for desafio vencido, adiciona borda dourada
+  if(modoJogo === 'desafio') {
+    cardResultado.style.border = "3px solid #fbbf24";
+    cardResultado.style.boxShadow = "0 0 20px rgba(251, 191, 36, 0.4)";
+  }
+
   cardResultado.innerHTML = `
       <h2>${animacao}</h2>
-      <div style="font-size: 4rem; color: ${corTitulo}; font-weight:800; margin: 20px 0;">
-        ${porcentagem}%
+      <div style="font-size: 4rem; color: ${cor}; font-weight:800; margin: 20px 0;">
+        ${modoJogo === 'desafio' ? '100%' : porcentagem + '%'}
       </div>
       <p style="font-size:1.2rem; margin-bottom:20px; font-weight:600;">
         ${mensagem}
@@ -339,17 +419,21 @@ function mostrarResultadoFinal() {
       <p>Você acertou ${acertos} de ${perguntas.length}</p>
       
       <button onclick="location.reload()" style="background:var(--brand-green); color:white; padding:15px 30px; border:none; border-radius:12px; font-size:1.1rem; cursor:pointer; margin-top:20px;">
-        Refazer Treinamento
+        Voltar ao Menu
       </button>
-      <br><br>
-      <a href="index.html" style="color:#666; text-decoration:none;">Voltar ao Menu</a>
   `;
   
   quizStage.appendChild(cardResultado);
 
-  if (aprovado) dispararConfete();
+  // Confete se aprovado no normal ou venceu desafio
+  if ((modoJogo === 'normal' && porcentagem >= 50) || modoJogo === 'desafio') {
+    dispararConfete();
+  }
 }
 
+// =======================
+// CONFETE
+// =======================
 function dispararConfete() {
   const canvas = document.getElementById("canvas-confete");
   if(!canvas) return;
@@ -360,7 +444,7 @@ function dispararConfete() {
   const confetes = [];
   const cores = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 150; i++) { // Mais confete para a vitória!
     confetes.push({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height - canvas.height,
@@ -387,5 +471,5 @@ function dispararConfete() {
     requestAnimationFrame(draw);
   }
   draw();
-  setTimeout(() => { canvas.width = 0; }, 5000);
+  setTimeout(() => { canvas.width = 0; }, 6000);
 }
