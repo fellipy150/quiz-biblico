@@ -1,5 +1,5 @@
 /* =========================================
-   STYLE.CSS - Guardiões (V4 - Animado)
+   STYLE.CSS - Guardiões (V5 - Smooth Transitions)
 ========================================= */
 
 :root {
@@ -26,10 +26,10 @@ body {
 main {
   max-width: 500px; margin: 0 auto; padding: 16px;
   display: flex; flex-direction: column; align-items: center;
-  position: relative; /* Importante para o confete */
+  position: relative;
 }
 
-/* LOGO */
+/* LOGO e CABEÇALHO */
 .logo-container { margin: 10px 0 20px 0; text-align: center; }
 .logo-img { max-width: 140px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); }
 h1 { font-size: 1.3rem; margin-bottom: 20px; text-align: center; }
@@ -42,78 +42,71 @@ h1 { font-size: 1.3rem; margin-bottom: 20px; text-align: center; }
   font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center;
 }
 
-/* --- BARRA DE PROGRESSO TIPO STORIES --- */
+/* --- BARRA DE STORIES --- */
 #barra-progresso-container {
-  display: flex;
-  gap: 4px;
-  width: 100%;
-  margin-bottom: 15px;
-  height: 6px; /* Um pouco mais fina */
+  display: flex; gap: 4px; width: 100%; margin-bottom: 15px; height: 6px;
 }
-
 .segmento-barra {
-  flex: 1;
-  background-color: rgba(255,255,255,0.3);
-  border-radius: 4px;
-  overflow: hidden; /* Para a barra interna não vazar */
-  position: relative;
+  flex: 1; background-color: rgba(255,255,255,0.3); border-radius: 4px; overflow: hidden; position: relative;
 }
-
-/* A barra que enche */
 .fill-tempo {
-  height: 100%;
-  width: 0%;
-  background-color: #ffffff;
-  opacity: 0.8;
-  border-radius: 4px;
-  transition: width linear; /* A duração será definida no JS */
+  height: 100%; width: 0%; background-color: #ffffff; opacity: 0.8; border-radius: 4px;
 }
-
-/* Estados Finais (sobrescrevem o fill) */
 .segmento-barra.correto { background-color: #a3e635; box-shadow: 0 0 8px #a3e635; }
-.segmento-barra.correto .fill-tempo { display: none; } /* Esconde o fill branco */
-
+.segmento-barra.correto .fill-tempo { display: none; }
 .segmento-barra.errado { background-color: #f87171; }
 .segmento-barra.errado .fill-tempo { display: none; }
 
-/* TIMER TEXTO */
+/* TIMER */
 .timer-box { background: rgba(0,0,0,0.2); padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; display: inline-block; }
 
-/* --- QUIZ CARD E ANIMAÇÕES --- */
+/* --- PALCO DO QUIZ (ATUALIZADO) --- */
+/* Isso permite que as cartas fiquem uma em cima da outra para a transição */
+#quiz-stage {
+  display: grid;
+  grid-template-areas: "stack";
+  width: 100%;
+  position: relative;
+  overflow-x: hidden; /* Corta o que estiver saindo da tela */
+  min-height: 400px; /* Altura mínima para evitar pulos */
+}
+
 .card-quiz {
+  grid-area: stack; /* Todas as cartas ocupam o mesmo espaço */
   background: var(--white);
   color: var(--text-dark);
   padding: 20px;
   border-radius: var(--radius);
   box-shadow: 0 8px 20px rgba(0,0,0,0.2);
   width: 100%;
-  position: relative;
-  /* Prepara para animação */
-  transform: translateX(0);
+  
+  /* Configuração Inicial de Transição */
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
   opacity: 1;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform: translateX(0);
 }
 
-/* Animação de Saída (Vai para esquerda) */
-.slide-out-left {
-  transform: translateX(-50px);
+/* Animações de Entrada e Saída */
+.card-quiz.pre-render-direita {
+  transform: translateX(120%); /* Começa fora da tela à direita */
   opacity: 0;
+  pointer-events: none;
 }
 
-/* Animação de Entrada (Vem da direita) */
-/* Usaremos keyframe para a entrada ser mais controlada */
-@keyframes slideInRight {
-  from { transform: translateX(50px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+.card-quiz.saindo-esquerda {
+  transform: translateX(-120%); /* Vai para fora à esquerda */
+  opacity: 0;
+  pointer-events: none;
 }
 
-.anime-entrada {
-  animation: slideInRight 0.4s ease forwards;
+.card-quiz.ativo {
+  transform: translateX(0); /* Fica no centro */
+  opacity: 1;
+  pointer-events: auto;
 }
 
+/* Elementos internos do Card */
 .pergunta { font-size: 1.15rem; font-weight: 700; margin-bottom: 15px; color: #111; line-height: 1.4; }
-
-/* OPÇÕES */
 .opcao {
   padding: 14px 16px; margin-bottom: 10px; background: #f8fafc;
   border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer;
@@ -126,7 +119,6 @@ h1 { font-size: 1.3rem; margin-bottom: 20px; text-align: center; }
 .opcao.errada::after { content: "✕"; font-weight: bold; font-size: 1.2rem; }
 .bloqueado { pointer-events: none; }
 
-/* BOTÕES E DICAS */
 #btn-prox {
   background: var(--brand-dark); color: white; border: none; width: 100%;
   padding: 16px; font-size: 1.1rem; font-weight: 700; border-radius: var(--radius);
@@ -136,6 +128,7 @@ h1 { font-size: 1.3rem; margin-bottom: 20px; text-align: center; }
 }
 @keyframes subir { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
+/* Dicas */
 .area-dica-container { width: 100%; display: flex; flex-direction: column; align-items: flex-end; margin-top: 15px; }
 .btn-dica-minimal {
   background: transparent; border: 1px solid #e5e7eb; color: #6b7280;
@@ -145,15 +138,6 @@ h1 { font-size: 1.3rem; margin-bottom: 20px; text-align: center; }
 .contador-dica { background-color: #fee2e2; color: #ef4444; font-size: 0.8rem; font-weight: 800; padding: 2px 8px; border-radius: 10px; }
 .box-dica-texto { width: 100%; margin-top: 10px; background: #fffbeb; border-left: 3px solid #fbbf24; padding: 12px; font-size: 0.95rem; color: #92400e; border-radius: 6px; animation: fadeIn 0.3s ease; }
 
-/* CANVAS CONFETE */
-#canvas-confete {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none; /* Deixa clicar através dele */
-  z-index: 9999;
-}
-
+/* Confete */
+#canvas-confete { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
 .btn-voltar { color: rgba(255,255,255,0.8); text-decoration: none; margin-bottom: 15px; display: block; font-size: 0.9rem; }

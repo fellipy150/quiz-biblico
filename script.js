@@ -1,11 +1,12 @@
 // =========================================
-//  SCRIPT.JS - Guardiões (V4 - Animations)
+//  SCRIPT.JS - Guardiões (V5 - Smooth)
 // =========================================
 
 const listaEl = document.getElementById("lista-quizes");
-const quizContainer = document.getElementById("quiz-container");
+const quizStage = document.getElementById("quiz-stage");
 const barraProgressoEl = document.getElementById("barra-progresso-container");
 const tituloEl = document.getElementById("titulo-quiz");
+const displayTempoEl = document.getElementById("display-tempo");
 
 // Estado
 let perguntas = [];
@@ -44,7 +45,7 @@ if (listaEl) {
     });
 }
 
-if (quizContainer) {
+if (quizStage) {
   const params = new URLSearchParams(window.location.search);
   const idQuiz = params.get("id");
 
@@ -54,11 +55,12 @@ if (quizContainer) {
       .then(text => {
         processarMarkdown(text);
         renderizarBarraProgresso();
-        renderizarPergunta();
+        // Primeira renderização direta
+        adicionarNovaPergunta(perguntas[0], false);
       })
       .catch((e) => {
         console.error(e);
-        quizContainer.innerHTML = "<p>Erro ao carregar.</p>";
+        quizStage.innerHTML = "<p>Erro ao carregar.</p>";
       });
   } else {
     window.location.href = "index.html";
@@ -99,7 +101,7 @@ function processarMarkdown(md) {
 }
 
 // =======================
-// RENDERIZAÇÃO
+// RENDERIZAÇÃO & ANIMAÇÃO
 // =======================
 function renderizarBarraProgresso() {
   if (!barraProgressoEl) return;
@@ -108,12 +110,9 @@ function renderizarBarraProgresso() {
     const seg = document.createElement("div");
     seg.classList.add("segmento-barra");
     seg.id = `seg-${i}`;
-    
-    // Adiciona o elemento de preenchimento interno
     const fill = document.createElement("div");
     fill.classList.add("fill-tempo");
     seg.appendChild(fill);
-    
     barraProgressoEl.appendChild(seg);
   });
 }
@@ -123,45 +122,34 @@ function atualizarBarra(indice, acertou) {
   if (seg) seg.classList.add(acertou ? "correto" : "errado");
 }
 
-// Função para iniciar a animação da barra "Stories"
 function animarBarra(indice) {
   const seg = document.getElementById(`seg-${indice}`);
   if (!seg) return;
   const fill = seg.querySelector(".fill-tempo");
   if (!fill) return;
 
-  // Reseta primeiro
   fill.style.transition = "none";
   fill.style.width = "0%";
-  
-  // Força um reflow para o navegador entender que zerou
-  void fill.offsetWidth;
-
-  // Inicia a animação sincronizada com o tempoTotal
+  void fill.offsetWidth; // Reflow
   fill.style.transition = `width ${tempoTotal}s linear`;
   fill.style.width = "100%";
 }
 
-function renderizarPergunta() {
-  if (indiceAtual >= perguntas.length) {
-    mostrarResultadoFinal();
-    return;
-  }
-
-  const p = perguntas[indiceAtual];
+// --- FUNÇÃO CORE: Adiciona Card com Animação ---
+function adicionarNovaPergunta(p, comAnimacao = true) {
   respondido = false;
+  if(displayTempoEl) displayTempoEl.style.display = "block";
 
-  const opcoesEmbaralhadas = embaralhar([...p.opcoes]); 
-
+  // 1. Gera o HTML do novo card
+  const opcoesEmbaralhadas = embaralhar([...p.opcoes]);
   let htmlOpcoes = "";
   opcoesEmbaralhadas.forEach((op, index) => {
     htmlOpcoes += `
       <div class="opcao" id="op-${index}" 
            data-is-correct="${op.correta}" 
-           onclick="verificarResposta(${index})">
+           onclick="verificarResposta(${index}, this)">
         ${op.texto}
-      </div>
-    `;
+      </div>`;
   });
 
   let htmlDica = "";
@@ -173,25 +161,52 @@ function renderizarPergunta() {
         <button class="btn-dica-minimal" ${desabilitado} onclick="mostrarDica(this, '${p.dica.replace(/'/g, "&#39;")}')">
           💡 ${textoBotao} <span class="contador-dica">${dicasRestantes}</span>
         </button>
-        <div id="texto-dica-visivel"></div>
-      </div>
-    `;
+        <div class="texto-dica-placeholder"></div>
+      </div>`;
   }
 
-  // Renderiza com a classe de animação de entrada
-  quizContainer.innerHTML = `
-    <div style="text-align:center">
-      <div id="display-tempo" class="timer-box">⏱️ ${tempoTotal}s</div>
-    </div>
-    <div class="card-quiz anime-entrada" id="card-ativo">
-      <div class="pergunta">${p.enunciado}</div>
-      <div class="lista-opcoes">${htmlOpcoes}</div>
-      ${htmlDica}
-      <button id="btn-prox" onclick="transicaoProximaPergunta()">Próxima Pergunta ➜</button>
-    </div>
+  // Cria o elemento DOM
+  const novoCard = document.createElement('div');
+  novoCard.className = 'card-quiz';
+  novoCard.innerHTML = `
+    <div class="pergunta">${p.enunciado}</div>
+    <div class="lista-opcoes">${htmlOpcoes}</div>
+    ${htmlDica}
+    <button id="btn-prox" onclick="transicaoProximaPergunta()">Próxima Pergunta ➜</button>
   `;
 
-  // Inicia barra e timer
+  // 2. Se for animação, prepara posição inicial
+  if (comAnimacao) {
+    novoCard.classList.add('pre-render-direita');
+  } else {
+    novoCard.classList.add('ativo');
+  }
+
+  // 3. Adiciona ao Palco
+  quizStage.appendChild(novoCard);
+
+  // 4. Se tiver animação, executa a troca
+  if (comAnimacao) {
+    // Pega o card antigo (que está ativo atualmente)
+    const cardAntigo = quizStage.querySelector('.card-quiz.ativo');
+    
+    // Força reflow para o navegador entender a posição inicial do novo card
+    void novoCard.offsetWidth; 
+    
+    // Dispara animações
+    if (cardAntigo) {
+      cardAntigo.classList.remove('ativo');
+      cardAntigo.classList.add('saindo-esquerda');
+      // Remove do DOM após a animação acabar (0.5s)
+      setTimeout(() => cardAntigo.remove(), 500);
+    }
+    
+    // Traz o novo card para o centro
+    novoCard.classList.remove('pre-render-direita');
+    novoCard.classList.add('ativo');
+  }
+
+  // Inicia lógica de tempo
   animarBarra(indiceAtual);
   iniciarTimer();
 }
@@ -202,26 +217,30 @@ function renderizarPergunta() {
 function mostrarDica(btn, textoDica) {
   if(dicasRestantes <= 0) return;
   dicasRestantes--;
+  
   const contador = btn.querySelector(".contador-dica");
   if(contador) contador.innerText = dicasRestantes;
   if (dicasRestantes === 0) {
     btn.innerHTML = `💡 Sem dicas <span class="contador-dica">0</span>`;
     btn.disabled = true;
   }
-  const areaTexto = document.getElementById("texto-dica-visivel");
-  areaTexto.innerHTML = `<div class="box-dica-texto">${textoDica}</div>`;
+  
+  // Encontra a div de texto dentro do card atual
+  const currentCard = document.querySelector('.card-quiz.ativo');
+  const areaTexto = currentCard.querySelector(".texto-dica-placeholder");
+  if(areaTexto) areaTexto.innerHTML = `<div class="box-dica-texto">${textoDica}</div>`;
+  
   btn.disabled = true; 
 }
 
 function iniciarTimer() {
   tempoRestante = tempoTotal;
   clearInterval(timerInterval);
-  const displayTimer = document.getElementById("display-tempo");
-  if(displayTimer) displayTimer.innerText = `⏱️ ${tempoRestante}s`;
+  if(displayTempoEl) displayTempoEl.innerText = `⏱️ ${tempoRestante}s`;
 
   timerInterval = setInterval(() => {
     tempoRestante--;
-    if(displayTimer) displayTimer.innerText = `⏱️ ${tempoRestante}s`;
+    if(displayTempoEl) displayTempoEl.innerText = `⏱️ ${tempoRestante}s`;
     if (tempoRestante <= 0) {
       clearInterval(timerInterval);
       tempoEsgotado();
@@ -231,17 +250,19 @@ function iniciarTimer() {
 
 function tempoEsgotado() {
   if (respondido) return;
-  verificarResposta(-1);
-  const titulo = document.querySelector(".pergunta");
+  verificarResposta(-1, null); // -1 = erro/tempo
+  
+  const currentCard = document.querySelector('.card-quiz.ativo');
+  const titulo = currentCard.querySelector(".pergunta");
   if(titulo) titulo.innerHTML += " <br><span style='color:red; font-size:0.9em'>(Tempo Esgotado!)</span>";
 }
 
-window.verificarResposta = function(index) {
+window.verificarResposta = function(index, elementoClicado) {
   if (respondido) return;
   respondido = true;
   clearInterval(timerInterval);
 
-  // Para a animação da barra na posição atual
+  // Para barra
   const seg = document.getElementById(`seg-${indiceAtual}`);
   const fill = seg.querySelector(".fill-tempo");
   if(fill) {
@@ -250,7 +271,9 @@ window.verificarResposta = function(index) {
     fill.style.width = computedWidth;
   }
 
-  const opcoesEls = document.querySelectorAll('.opcao');
+  // UI Feedback
+  const currentCard = document.querySelector('.card-quiz.ativo');
+  const opcoesEls = currentCard.querySelectorAll('.opcao');
   let acertou = false;
 
   opcoesEls.forEach((el, i) => {
@@ -266,31 +289,25 @@ window.verificarResposta = function(index) {
 
   if (acertou) acertos++;
   
-  // Atualiza a barra para a cor final (verde/vermelho)
-  // Pequeno delay para usuário ver a barra parando antes de ficar verde
+  // Delay visual para pintar a barra de cima
   setTimeout(() => {
     atualizarBarra(indiceAtual, acertou);
   }, 200);
 
-  document.getElementById("btn-prox").style.display = "block";
-  const btnDica = document.querySelector(".btn-dica-minimal");
+  const btnProx = currentCard.querySelector("#btn-prox");
+  if(btnProx) btnProx.style.display = "block";
+  
+  const btnDica = currentCard.querySelector(".btn-dica-minimal");
   if(btnDica) btnDica.disabled = true;
 };
 
-// NOVA FUNÇÃO: Transição Animada
 window.transicaoProximaPergunta = function() {
-  const card = document.getElementById("card-ativo");
-  if(card) {
-    // Adiciona a classe que joga para a esquerda
-    card.classList.remove("anime-entrada");
-    card.classList.add("slide-out-left");
+  indiceAtual++;
+  if (indiceAtual >= perguntas.length) {
+    mostrarResultadoFinal();
+  } else {
+    adicionarNovaPergunta(perguntas[indiceAtual], true);
   }
-
-  // Espera a animação (300ms) terminar antes de renderizar a próxima
-  setTimeout(() => {
-    indiceAtual++;
-    renderizarPergunta();
-  }, 300);
 };
 
 // =======================
@@ -303,8 +320,15 @@ function mostrarResultadoFinal() {
   const mensagem = aprovado ? "Mandou bem, Guardião! 🛡️" : "Que pena, continue treinando! 📖";
   const animacao = aprovado ? "Parabéns!" : "";
 
-  quizContainer.innerHTML = `
-    <div class="card-quiz anime-entrada" style="text-align:center;">
+  if(displayTempoEl) displayTempoEl.style.display = "none";
+
+  // Limpa o palco e adiciona card de resultado
+  quizStage.innerHTML = "";
+  
+  const cardResultado = document.createElement('div');
+  cardResultado.className = 'card-quiz anime-entrada'; // Usa animação padrão CSS
+  cardResultado.style.textAlign = 'center';
+  cardResultado.innerHTML = `
       <h2>${animacao}</h2>
       <div style="font-size: 4rem; color: ${corTitulo}; font-weight:800; margin: 20px 0;">
         ${porcentagem}%
@@ -319,15 +343,13 @@ function mostrarResultadoFinal() {
       </button>
       <br><br>
       <a href="index.html" style="color:#666; text-decoration:none;">Voltar ao Menu</a>
-    </div>
   `;
+  
+  quizStage.appendChild(cardResultado);
 
   if (aprovado) dispararConfete();
 }
 
-// =======================
-// SISTEMA DE CONFETE (CANVAS)
-// =======================
 function dispararConfete() {
   const canvas = document.getElementById("canvas-confete");
   if(!canvas) return;
@@ -358,19 +380,12 @@ function dispararConfete() {
       ctx.rect(c.x, c.y, c.w, c.h);
       ctx.fill();
       c.y += c.speed;
-      c.x += Math.sin(c.angle) * 0.5; // leve balanço
+      c.x += Math.sin(c.angle) * 0.5;
       c.angle += 0.1;
-      
-      // Se passar da tela, volta pro topo
       if (c.y > canvas.height) c.y = -10;
     });
     requestAnimationFrame(draw);
   }
-  
   draw();
-  
-  // Para depois de 5 segundos
-  setTimeout(() => {
-    canvas.width = 0; // Limpa o canvas
-  }, 5000);
+  setTimeout(() => { canvas.width = 0; }, 5000);
 }
