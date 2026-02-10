@@ -230,3 +230,24 @@ h1 { font-size: 1.3rem; margin-bottom: 20px; text-align: center; }
   letter-spacing: 2px;
 }
 #input-nome-jogador:focus { border-color: var(--brand-green); outline: none; }
+
+/* --- ESTILOS ESPECÍFICOS PARA O MODO DESAFIO --- */
+
+/* No modo desafio, removemos o "gap" entre os segmentos caso haja mais de um, 
+   embora o JS vá criar apenas um para este modo */
+.modo-desafio #barra-progresso-container {
+    gap: 0;
+}
+
+/* Cor da barra de preenchimento no Modo Desafio */
+.modo-desafio .fill-tempo {
+    background-color: #ef4444 !important; /* Vermelho vibrante */
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+/* Fundo da trilha da barra no Modo Desafio */
+.modo-desafio .segmento-barra {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}

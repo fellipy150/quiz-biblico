@@ -2,31 +2,29 @@
 //  GAME.JS - Motor de Jogo e Animações
 // =========================================
 
-// Seleção de Elementos do DOM
 const listaEl = document.getElementById('lista-quizes');
 const quizStage = document.getElementById('quiz-stage');
 const barraProgressoEl = document.getElementById('barra-progresso-container');
 const tituloEl = document.getElementById('titulo-quiz');
 const displayTempoEl = document.getElementById('display-tempo');
+const contadorPerguntasEl = document.getElementById('contador-perguntas'); // NOVO
 const telaSelecaoEl = document.getElementById('tela-selecao');
 
-// Estado Global do Jogo (Exposto na window para o ranking.js acessar)
+// Estado Global
 window.perguntas = [];
 window.indiceAtual = 0;
 window.acertos = 0;
-window.pontuacaoTotal = 0; // Pontos dinâmicos acumulados
-window.modoJogo = null; // 'normal' | 'desafio'
+window.pontuacaoTotal = 0;
+window.modoJogo = null;
 
-// Variáveis de Controle Interno
 let respondido = false;
 let dicasRestantes = 2;
-let tempoTotal = 30; // Padrão
+let tempoTotal = 30;
 let tempoRestante = 30;
 let timerInterval;
 
-// =======================
-// UTILS
-// =======================
+// ... (Funções embaralhar, fetch e processarMarkdown permanecem iguais) ...
+
 function embaralhar(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -35,11 +33,6 @@ function embaralhar(array) {
   return array;
 }
 
-// =======================
-// INICIALIZAÇÃO
-// =======================
-
-// Carrega a lista no index.html
 if (listaEl) {
   fetch('quizes/index.json')
     .then((res) => res.json())
@@ -50,7 +43,6 @@ if (listaEl) {
     });
 }
 
-// Carrega o Quiz selecionado
 if (quizStage) {
   const params = new URLSearchParams(window.location.search);
   const idQuiz = params.get('id');
@@ -67,9 +59,6 @@ if (quizStage) {
   }
 }
 
-// =======================
-// PARSER DE MARKDOWN
-// =======================
 function processarMarkdown(md) {
   const linhas = md.replace(/\r\n/g, '\n').split('\n');
   const tituloRaw = linhas.find((l) => l.startsWith('# '));
@@ -111,27 +100,41 @@ window.iniciarJogo = function (modo) {
   tempoTotal = modo === 'desafio' ? 15 : 30;
 
   if (modo === 'desafio') document.body.classList.add('modo-desafio');
+  else document.body.classList.remove('modo-desafio');
 
   telaSelecaoEl.style.display = 'none';
   quizStage.style.display = 'grid';
   barraProgressoEl.style.display = 'flex';
+  displayTempoEl.style.display = 'block';
+  contadorPerguntasEl.style.display = 'block'; // Mostrar contador
 
   renderizarBarraProgresso();
   adicionarNovaPergunta(window.perguntas[0], false);
 };
 
 function renderizarBarraProgresso() {
-  barraProgressoEl.innerHTML = window.perguntas
-    .map(
-      (_, i) => `
-        <div class="segmento-barra" id="seg-${i}"><div class="fill-tempo"></div></div>`
-    )
-    .join('');
+  barraProgressoEl.innerHTML = '';
+  if (window.modoJogo === 'desafio') {
+    barraProgressoEl.innerHTML = `
+            <div class="segmento-barra" id="seg-unico" style="flex: 1;">
+                <div class="fill-tempo"></div>
+            </div>`;
+  } else {
+    barraProgressoEl.innerHTML = window.perguntas
+      .map(
+        (_, i) => `
+            <div class="segmento-barra" id="seg-${i}"><div class="fill-tempo"></div></div>`
+      )
+      .join('');
+  }
 }
 
 function adicionarNovaPergunta(p, comAnimacao = true) {
   respondido = false;
-  displayTempoEl.style.display = 'block';
+
+  // Atualiza o contador visual: "1 / 10"
+  contadorPerguntasEl.innerText = `${window.indiceAtual + 1} / ${window.perguntas.length}`;
+
   const opcoesEmb = embaralhar([...p.opcoes]);
   const novoCard = document.createElement('div');
   novoCard.className = 'card-quiz';
@@ -168,7 +171,7 @@ function adicionarNovaPergunta(p, comAnimacao = true) {
     novoCard.classList.add('pre-render-direita');
     const cardAntigo = quizStage.querySelector('.card-quiz.ativo');
     quizStage.appendChild(novoCard);
-    void novoCard.offsetWidth; // Reflow
+    void novoCard.offsetWidth;
     if (cardAntigo) {
       cardAntigo.classList.replace('ativo', 'saindo-esquerda');
       setTimeout(() => cardAntigo.remove(), 500);
@@ -180,15 +183,22 @@ function adicionarNovaPergunta(p, comAnimacao = true) {
   }
 
   iniciarTimer();
-  const fill = document.getElementById(`seg-${window.indiceAtual}`).querySelector('.fill-tempo');
-  fill.style.transition = `width ${tempoTotal}s linear`;
+  animarBarraAtual();
+}
+
+function animarBarraAtual() {
+  const idAlvo = window.modoJogo === 'desafio' ? 'seg-unico' : `seg-${window.indiceAtual}`;
+  const seg = document.getElementById(idAlvo);
+  if (!seg) return;
+
+  const fill = seg.querySelector('.fill-tempo');
+  fill.style.transition = 'none';
+  fill.style.width = '0%';
   void fill.offsetWidth;
+  fill.style.transition = `width ${tempoTotal}s linear`;
   fill.style.width = '100%';
 }
 
-// =======================
-// TIMER E PONTUAÇÃO
-// =======================
 function iniciarTimer() {
   tempoRestante = tempoTotal;
   clearInterval(timerInterval);
@@ -209,7 +219,8 @@ window.verificarResposta = function (index, el) {
   respondido = true;
   clearInterval(timerInterval);
 
-  const seg = document.getElementById(`seg-${window.indiceAtual}`);
+  const idAlvo = window.modoJogo === 'desafio' ? 'seg-unico' : `seg-${window.indiceAtual}`;
+  const seg = document.getElementById(idAlvo);
   const fill = seg.querySelector('.fill-tempo');
   fill.style.width = window.getComputedStyle(fill).width;
   fill.style.transition = 'none';
@@ -229,16 +240,11 @@ window.verificarResposta = function (index, el) {
 
   if (acertou) {
     window.acertos++;
-
-    // PONTUAÇÃO DINÂMICA
     let pts = 0;
     let proporcao = tempoRestante / tempoTotal;
-
-    if (window.modoJogo === 'desafio') {
-      pts = 15 + Math.round(15 * proporcao); // 15 a 30
-    } else {
-      pts = 10 + Math.round(10 * proporcao); // 10 a 20
-    }
+    pts =
+      (window.modoJogo === 'desafio' ? 15 : 10) +
+      Math.round((window.modoJogo === 'desafio' ? 15 : 10) * proporcao);
     window.pontuacaoTotal += pts;
   }
 
@@ -247,13 +253,14 @@ window.verificarResposta = function (index, el) {
     return;
   }
 
+  // AGORA PINTA EM AMBOS OS MODOS (Correção do feedback negativo)
   seg.classList.add(acertou ? 'correto' : 'errado');
+
   card.querySelector('#btn-prox').style.display = 'block';
 };
 
-// =======================
-// FINALIZAÇÃO
-// =======================
+// ... (mostrarDica e transicaoProximaPergunta permanecem iguais) ...
+
 window.mostrarDica = function (btn, texto) {
   if (dicasRestantes <= 0) return;
   dicasRestantes--;
@@ -278,11 +285,13 @@ function gameOverDesafio(motivo) {
             <button onclick="location.reload()" style="background:var(--error); color:white; padding:15px; border-radius:12px; border:none; width:100%; font-weight:bold; cursor:pointer; margin-top:20px;">Tentar Novamente</button>
         </div>`;
   displayTempoEl.style.display = 'none';
+  contadorPerguntasEl.style.display = 'none'; // Esconde o contador no Game Over
 }
 
 function mostrarResultadoFinal() {
   const win = window.modoJogo === 'desafio' || window.acertos / window.perguntas.length >= 0.5;
   displayTempoEl.style.display = 'none';
+  contadorPerguntasEl.style.display = 'none'; // Esconde o contador no fim
   quizStage.innerHTML = `
         <div class="card-quiz ativo anime-entrada" style="text-align:center;">
             <h2>${win ? 'Parabéns!' : 'Que pena!'}</h2>
