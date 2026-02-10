@@ -1,20 +1,20 @@
 # Filipenses Capítulo 3
 
-## No versículo 2, Paulo usa termos duros ("cães", "maus obreiros") para alertar a igreja contra qual grupo específico?
+## Paulo usa termos duros ("cães", "maus obreiros") para alertar a igreja contra qual grupo específico?
 [ ] Contra os filósofos epicureus que negavam a vida após a morte
 [ ] Contra os magistrados romanos que exigiam adoração a César
 [x] Contra os judaizantes que exigiam a mutilação física (circuncisão)
 [ ] Contra os gnósticos que afirmavam que Jesus não teve um corpo real
 -# Dica: O contexto imediato discute a confiança na "carne" e os rituais da Lei.
 
-## Como Paulo redefine o conceito de "verdadeira circuncisão" (o povo da aliança) no versículo 3?
+## Como Paulo redefine o conceito de "verdadeira circuncisão" (o povo da aliança) em contraste com a mutilação física?
 [ ] São aqueles que possuem a genealogia comprovada de Abraão
 [x] São os que adoram a Deus no Espírito e não confiam na carne
 [ ] São aqueles que guardam o sábado e as festas lunares rigorosamente
 [ ] São os que foram batizados nas águas do Rio Jordão
 -# Dica: A definição deixa de ser étnica/cirúrgica e passa a ser espiritual/pneumatológica.
 
-## Se a salvação fosse baseada em "confiança na carne" (credenciais humanas), qual seria a situação de Paulo?
+## Se a salvação fosse baseada em "confiança na carne" (credenciais humanas), qual seria a situação de Paulo comparada aos opositores?
 [ ] Ele estaria em desvantagem por ter perseguido a igreja
 [ ] Ele estaria empatado com os apóstolos de Jerusalém
 [x] Ele teria mais motivos para confiar do que qualquer outro
@@ -56,7 +56,7 @@
 [ ] Porque perdeu seu status social ao ser preso em Roma
 -# Dica: A desvalorização ocorre por comparação: o novo tesouro torna o antigo sem valor.
 
-## No versículo 9, Paulo contrasta dois tipos de justiça. Quais são elas?
+## Ao explicar sua nova condição espiritual, Paulo contrasta dois tipos de justiça. Quais são elas?
 [ ] A justiça dos homens (civil) vs. A justiça dos anjos (celestial)
 [x] A justiça própria (vinda da Lei) vs. A justiça de Deus (pela fé)
 [ ] A justiça punitiva (tribunal) vs. A justiça restaurativa (perdão)
@@ -70,7 +70,7 @@
 [ ] A sabedoria de suas parábolas e o sermão da montanha
 -# Dica: O conhecimento não é teórico, mas vivencial, unindo glória (vida) e dor (cruz).
 
-## O que Paulo afirma sobre seu estado atual de "perfeição" no versículo 12?
+## O que Paulo afirma sobre seu estado atual de "perfeição" ou maturidade completa?
 [ ] Que já alcançou a perfeição absoluta e não peca mais
 [ ] Que desistiu de ser perfeito pois a graça cobre tudo
 [x] Que ainda não alcançou, mas prossegue para conquistar o alvo
@@ -91,14 +91,14 @@
 [ ] À garantia de livramento das prisões romanas
 -# Dica: A vocação é "para cima" (celestial), indicando uma recompensa escatológica, não terrena.
 
-## Quando Paulo se dirige aos "perfeitos" (maduros) no versículo 15, qual atitude ele espera deles?
+## Quando Paulo se dirige aos "perfeitos" (maduros), qual atitude mental ele espera deles?
 [ ] Que ensinem os mais novos com rigor e autoridade
 [ ] Que se considerem prontos e acabados espiritualmente
 [x] Que tenham esse mesmo sentimento de insatisfação santa e progresso
 [ ] Que julguem aqueles que não conseguem correr rápido
 -# Dica: Paradoxalmente, a marca da maturidade é reconhecer que ainda há caminho para andar.
 
-## Qual regra prática Paulo estabelece para a consistência da vida cristã (v. 16)?
+## Qual regra prática Paulo estabelece para a consistência da vida cristã?
 [ ] Devemos buscar novas revelações a cada dia
 [ ] Devemos adaptar a mensagem à cultura local
 [x] Devemos andar de acordo com o que já alcançamos
@@ -147,14 +147,14 @@
 [ ] O poder oculto nos rituais de sepultamento
 -# Dica: A ressurreição é um ato de soberania cósmica sobre a matéria e a morte.
 
-## A expressão "conformar-se com ele na sua morte" (v. 10) sugere uma vida marcada por:
+## A expressão "conformar-se com ele na sua morte" sugere uma vida marcada por:
 [ ] Uma busca intencional pelo martírio físico e suicídio
 [ ] Uma prática de autoflagelação para purificação
 [x] Uma disposição de morrer para o eu e sofrer pelo evangelho como Jesus
 [ ] Uma peregrinação anual ao túmulo de Cristo em Jerusalém
 -# Dica: Trata-se de uma identificação ética e existencial com o caminho da cruz (o formato de vida de Jesus).
 
-## Quando Paulo diz "não que eu o tenha já recebido" (v. 12), ele combate qual erro teológico possível?
+## Quando Paulo diz "não que eu o tenha já recebido", ele combate qual erro teológico possível na igreja?
 [ ] O Legalismo (salvação pelas obras da Lei)
 [ ] O Antinomismo (a ideia de que a lei moral não importa)
 [x] O Perfeccionismo (a ideia de que já se chegou ao estado final de santidade)
@@ -167,4 +167,3 @@
 [ ] Mestre de sabedoria que ensinará as nações
 [ ] Rei político que restaurará a monarquia em Israel
 -# Dica: O contexto de cidadania e corpo destaca o papel de quem resgata e transforma a natureza humana.
-

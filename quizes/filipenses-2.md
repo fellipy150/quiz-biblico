@@ -1,6 +1,6 @@
 # Filipenses Capítulo 2
 
-## Segundo a instrução de Paulo sobre a humildade (v.3), como os cristãos devem considerar uns aos outros?
+## Segundo a instrução de Paulo sobre a humildade, como os cristãos devem considerar uns aos outros?
 [ ] Como iguais em direitos e deveres perante a congregação
 [ ] Como servos que devem obediência cega à liderança
 [x] Como superiores a si mesmos, em atitude de humildade
@@ -35,7 +35,7 @@
 [ ] A garantia de prosperidade material para os fiéis
 -# Dica: O clímax do hino envolve todas as esferas (céu, terra e debaixo da terra) reconhecendo Sua autoridade.
 
-## Segundo o versículo 13, qual é a relação entre Deus e a vontade humana na santificação?
+## Segundo a explicação de Paulo sobre a dinâmica da santificação, qual é a relação entre Deus e a vontade humana?
 [ ] O homem deve ter a vontade, e Deus dará apenas a força
 [x] Deus é quem efetua tanto o querer quanto o realizar
 [ ] Deus anula a vontade humana para impor a Sua soberania
@@ -72,7 +72,7 @@
 
 ---
 
-## Qual é a estrutura do movimento de Cristo descrita no hino dos versículos 6-11?
+## Qual é a estrutura do movimento de Cristo descrita no hino cristológico do capítulo?
 [ ] Ascendente apenas: De homem a Deus
 [ ] Cíclica: De Deus para homem e reencarnação
 [x] Em forma de "V": Preexistência -> Humilhação -> Exaltação
@@ -86,14 +86,14 @@
 [ ] Que Jesus precisou conquistar sua divindade na cruz
 -# Dica: Ele tinha o status por direito, mas escolheu não usá-lo para vantagem pessoal naquele momento.
 
-## Na base para a unidade cristã (v.1), Paulo apela para quais experiências espirituais compartilhadas?
+## Na base inicial para a unidade cristã, Paulo apela para quais experiências espirituais compartilhadas?
 [ ] Milagres, Batismo, Ceia e Dízimos
 [x] Consolação em Cristo, Comunhão do Espírito e Afetos de misericórdia
 [ ] Profecia, Línguas, Cura e Discernimento
 [ ] Arrependimento, Fé, Esperança e Caridade
 -# Dica: Os apelos são relacionais e internos, ligados à vivência do amor e do Espírito.
 
-## O que significa "desenvolvei a vossa salvação com temor e tremor"?
+## O que significa a ordem "desenvolvei a vossa salvação com temor e tremor"?
 [ ] Que a salvação não é segura e pode ser perdida a qualquer momento
 [ ] Que devemos ter medo constante do inferno
 [x] Que a vida cristã exige reverência e diligência séria na obediência
@@ -114,7 +114,7 @@
 [ ] O medo de morrer sem ver Paulo liberto
 -# Dica: A preocupação dele era altruísta; ele estava triste porque vocês estavam preocupados.
 
-## A frase "todos buscam o que é seu" (v.21) serve de contraste para exaltar o caráter de quem?
+## A frase "todos buscam o que é seu" serve de contraste para exaltar o caráter de quem?
 [ ] De Jesus
 [ ] De Paulo
 [x] De Timóteo
@@ -163,10 +163,9 @@
 [ ] Ao poder de cura do próprio Paulo
 -# Dica: Paulo reconhece que Deus evitou que ele tivesse "tristeza sobre tristeza".
 
-## A finalidade de Paulo ao ensinar a teologia profunda sobre Cristo (vv. 5-11) é:
+## A finalidade de Paulo ao ensinar a teologia profunda sobre Cristo presente neste capítulo é:
 [ ] Combater uma heresia gnóstica específica
 [ ] Estabelecer um credo para ser recitado nos cultos
 [x] Fundamentar a ética de humildade e serviço na comunidade
 [ ] Provar aos romanos que Jesus era superior a César
 -# Dica: A teologia serve aqui como base para o comportamento prático ("Tende em vós...").
-
