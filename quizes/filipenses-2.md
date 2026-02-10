@@ -1,145 +1,172 @@
 # Filipenses Capítulo 2
 
-## Segundo a instrução de Paulo sobre como evitar a vaidade e a ambição egoísta, como os cristãos devem considerar uns aos outros?
-[ ] Como iguais em direitos e deveres perante a congregação.
-[x] Como superiores a si mesmos, em atitude de humildade.
-[ ] Como pessoas necessitadas que dependem de nossa orientação constante.
-[ ] Como subordinados que devem seguir os planos da liderança local.
--# Dica: O texto descreve uma atitude que coloca o próximo em uma posição de honra acima da própria importância.
+## Segundo a instrução de Paulo sobre a humildade (v.3), como os cristãos devem considerar uns aos outros?
+[ ] Como iguais em direitos e deveres perante a congregação
+[ ] Como servos que devem obediência cega à liderança
+[x] Como superiores a si mesmos, em atitude de humildade
+[ ] Como irmãos mais fracos que precisam de constante suporte
+-# Dica: O texto propõe uma inversão de valor onde o "eu" é colocado abaixo do valor atribuído ao próximo.
 
-## O capítulo afirma que o cristão deve buscar ter a mesma atitude (ou sentimento) que foi demonstrada por quem?
-[ ] Pelo apóstolo Paulo durante sua estadia na prisão.
-[ ] Por Timóteo ao servir à igreja de Filipos.
-[x] Por Cristo Jesus em sua trajetória de obediência.
-[ ] Pelos profetas do Antigo Testamento que previram o Messias.
--# Dica: Jesus é apresentado como o foco central e o modelo supremo de serviço e abnegação.
+## O capítulo afirma que o cristão deve ter o "mesmo sentimento" (ou atitude mental) que houve também em quem?
+[ ] Em Paulo, o prisioneiro do Senhor
+[ ] Em Timóteo, que serviu como filho ao pai
+[x] Em Cristo Jesus
+[ ] Em Epafrodito, o cooperador
+-# Dica: Embora os outros nomes sejam citados como exemplos, o modelo teológico primário é divino.
 
-## Jesus, embora sendo Deus, não se apegou à sua igualdade com Deus. O que ele fez em vez disso, no início de seu processo de humilhação?
-[ ] Tornou-se um anjo poderoso para governar a terra de forma invisível.
-[ ] Escondeu-se no deserto para evitar o contato com a glória humana.
-[x] Esvaziou-se a si mesmo, assumindo a forma de servo.
-[ ] Pediu que os homens o adorassem imediatamente para provar sua origem.
--# Dica: O texto narra a renúncia voluntária de privilégios para a adoção da forma de um trabalhador humilde.
+## Teologicamente, o que significa que Jesus "esvaziou-se a si mesmo" (*kenosis*)?
+[ ] Significa que Ele deixou de ser Deus enquanto estava na terra
+[x] Significa que Ele assumiu a forma de servo, não usando sua glória para benefício próprio
+[ ] Significa que Ele perdeu sua memória eterna para viver como um bebê
+[ ] Significa que Ele se tornou um anjo para mediar a aliança
+-# Dica: Não se trata da perda de essência divina, mas da adição da natureza humana e da servidão.
 
-## Até que ponto Jesus levou sua trajetória de obediência ao Pai ao assumir a figura humana?
-[ ] Até o encerramento de seu ministério público nas regiões da Galileia.
-[x] Até a morte, especificamente a morte de cruz.
-[ ] Até o momento em que recebeu o batismo de arrependimento no Rio Jordão.
-[ ] Até o dia em que completou o treinamento dos doze apóstolos escolhidos.
--# Dica: O relato menciona o sacrifício final e destaca a forma de execução mais vergonhosa da época romana.
+## A obediência de Cristo foi progressiva até atingir qual ponto culminante mencionado no texto?
+[ ] Até o batismo no Rio Jordão
+[ ] Até a tentação no deserto
+[x] Até a morte, e morte de cruz
+[ ] Até a subida aos céus
+-# Dica: O texto enfatiza o método de execução mais vergonhoso do Império Romano.
 
-## Qual é o resultado final da exaltação de Jesus promovida por Deus após Sua obediência?
-[x] Todo joelho se dobrará e toda língua confessará que Ele é o Senhor.
-[ ] O templo físico em Jerusalém seria restaurado de forma milagrosa.
-[ ] Paulo seria solto de suas algemas imediatamente após o envio da carta.
-[ ] Todos os seus seguidores passariam a ter prosperidade material imediata.
--# Dica: O texto descreve uma cena de reconhecimento universal onde todas as criaturas honram o nome de Jesus.
+## Qual é o resultado final da exaltação de Jesus promovida por Deus Pai?
+[ ] A restauração imediata do reino político de Israel
+[x] A confissão universal de que Jesus Cristo é o Senhor
+[ ] A destruição imediata de todos os inimigos da igreja
+[ ] A garantia de prosperidade material para os fiéis
+-# Dica: O clímax do hino envolve todas as esferas (céu, terra e debaixo da terra) reconhecendo Sua autoridade.
 
-## Quem é identificado no texto como aquele que efetua no interior do cristão tanto o desejar (querer) quanto o realizar?
-[ ] A própria força de vontade alimentada pela disciplina pessoal.
-[ ] A organização e os ensinamentos da estrutura da igreja local.
-[x] Deus, agindo de acordo com a sua própria boa vontade.
-[ ] Os líderes religiosos que supervisionam a caminhada dos fiéis.
--# Dica: O desejo e a capacidade de agir com justiça são descritos como frutos de uma operação divina interna.
+## Segundo o versículo 13, qual é a relação entre Deus e a vontade humana na santificação?
+[ ] O homem deve ter a vontade, e Deus dará apenas a força
+[x] Deus é quem efetua tanto o querer quanto o realizar
+[ ] Deus anula a vontade humana para impor a Sua soberania
+[ ] O homem realiza as obras para então conquistar o favor de Deus
+-# Dica: A motivação interna e a capacidade de execução vêm da mesma fonte divina.
 
-## Paulo instrui os filipenses a realizarem todas as suas tarefas e serviços evitando dois comportamentos específicos. Quais são eles?
-[ ] O medo do futuro e a dúvida sobre a salvação.
-[x] As murmurações e as discussões (queixas).
-[ ] A pressa exagerada e o cansaço físico extremo.
-[ ] A tristeza profunda e o choro constante.
--# Dica: O apóstolo adverte contra atitudes de reclamação que corroem a paz e a unidade da comunidade.
+## A ordem para "fazer todas as coisas sem murmurações nem contendas" tem qual propósito missionário?
+[ ] Evitar que a liderança da igreja fique sobrecarregada
+[x] Para que vos torneis irrepreensíveis no meio de uma geração pervertida
+[ ] Para garantir que as ofertas sejam dadas com alegria
+[ ] Para manter a ordem nos cultos públicos
+-# Dica: A atitude interna da comunidade valida o testemunho dela para o mundo exterior.
 
-## Os cristãos são comparados a que elemento do universo para que se destaquem em meio a uma sociedade perversa?
-[ ] Como o sol brilhando intensamente no auge do dia.
-[x] Como astros (ou estrelas) brilhando no mundo.
-[ ] Como a areia que compõe as vastas praias do mar.
-[ ] Como as nuvens que preparam o céu para a chuva.
--# Dica: A comparação utiliza corpos celestes que emitem luz e servem de guia em meio à escuridão.
+## Ao serem comparados a "luzeiros" (astros) no mundo, qual ação os cristãos devem desempenhar simultaneamente?
+[ ] Realizar milagres e prodígios publicamente
+[ ] Denunciar os pecados do Império Romano
+[x] Preservar (reter) a palavra da vida
+[ ] Fugir da corrupção das grandes cidades
+-# Dica: O brilho está condicionado a segurar firmemente a mensagem do Evangelho.
 
-## Qual foi o motivo principal apresentado por Paulo para escolher Timóteo como o enviado para visitar os filipenses?
-[ ] O fato de Timóteo ser o discípulo com mais anos de experiência ministerial.
-[x] O seu interesse sincero pelo bem-estar dos irmãos, em contraste com o egoísmo de outros.
-[ ] O desejo de Timóteo de encontrar um refúgio seguro longe das prisões romanas.
-[ ] A necessidade de Timóteo de tirar um período de descanso em uma cidade parceira.
--# Dica: Timóteo é elogiado por não buscar os próprios interesses e por agir como um filho dedicado ao pai.
+## O que distinguia Timóteo dos demais obreiros disponíveis, segundo a análise de Paulo?
+[ ] Sua eloquência e capacidade de oratória grega
+[x] Seu interesse genuíno pelo bem-estar dos filipenses, não buscando o que é seu
+[ ] Sua cidadania romana, que facilitava as viagens
+[ ] Sua idade avançada, que lhe conferia autoridade
+-# Dica: A crítica aos "outros" é que eles priorizavam seus próprios interesses.
 
-## Qual cooperador é destacado por quase ter perdido a vida para suprir a ajuda que a igreja de Filipos não podia dar a Paulo pessoalmente?
-[x] Epafrodito.
-[ ] Silas.
-[ ] Lucas.
-[ ] Barnabé.
--# Dica: Este homem foi o mensageiro oficial enviado pela igreja para levar ofertas e auxílio ao apóstolo.
-
----
-
-## Na introdução do capítulo, Paulo apresenta bases espirituais para a unidade. Qual alternativa contém apenas elementos citados como motivação para os irmãos?
-[ ] Fé em Cristo, sacrifícios de louvor, oração e misericórdia prática.
-[x] Motivação em Cristo, consolação de amor, comunhão no Espírito e afeição.
-[ ] Conhecimento bíblico, exortação mútua, batismo e paciência.
-[ ] Esperança no Senhor, serviço ao próximo, diversidade de dons e compaixão.
--# Dica: Na abertura do texto, as condições fundamentais são internas e ligadas diretamente ao amor e à atuação do Espírito.
-
-## Ao tratar da condição original de Cristo, qual foi a atitude dEle em relação à sua paridade com a Deidade?
-[ ] Ele defendeu sua posição como um direito absoluto que jamais poderia ser questionado.
-[x] Ele não considerou o ser igual a Deus como algo a que deveria apegar-se.
-[ ] Ele renunciou à sua essência espiritual para tornar-se um ser meramente mortal.
-[ ] Ele aguardou uma autorização especial para manifestar sua glória divina na terra.
--# Dica: O conceito central é que Jesus não usou Sua posição divina como um "trunfo" ou algo para reter em proveito próprio.
-
-## Qual é a base teológica para a ordem de "operar a salvação com temor e tremor" dada à comunidade?
-[ ] A salvação é mantida exclusivamente através do cumprimento rigoroso de ritos e leis.
-[ ] A urgência provocada pela maldade crescente da geração em que viviam.
-[x] O fato de que é Deus quem opera o querer e o realizar na vida do crente.
-[ ] A necessidade de validar o sofrimento e o trabalho missionário realizado por Paulo.
--# Dica: O texto equilibra a responsabilidade humana com a soberania de Deus agindo no interior de cada indivíduo.
-
-## No ensinamento sobre brilhar como luzes no mundo, o que é identificado como essencial para que o trabalho apostólico de Paulo não seja considerado em vão?
-[ ] A demonstração de sinais miraculosos e prodígios entre as nações gentílicas.
-[x] O ato de reter ou segurar firmemente a palavra da vida.
-[ ] A organização constante de auxílio financeiro para os pobres de outras regiões.
-[ ] A promoção de debates intelectuais contra a filosofia da sociedade corrompida.
--# Dica: O testemunho cristão no mundo está diretamente ligado à fidelidade e à preservação dos ensinos do Evangelho.
-
-## Qual metáfora sacrificial Paulo utiliza para descrever o valor de sua vida e possível morte em relação à fé dos filipenses?
-[ ] Ele se vê como o holocausto principal sendo consumido no altar de Deus.
-[ ] Ele se descreve como o incenso que perfuma o ambiente do santuário.
-[x] Ele se vê como uma oferta de bebida (libação) derramada sobre o serviço deles.
-[ ] Ele se compara ao cordeiro pascal que é sacrificado para a remissão de erros.
--# Dica: A imagem refere-se a uma oferta líquida que era adicionada como complemento a um sacrifício maior já existente.
-
-## Qual era a preocupação central que causava angústia em Epafrodito enquanto ele se recuperava de sua grave enfermidade?
-[ ] O medo de que sua morte impedisse a entrega dos documentos de Paulo.
-[ ] A angústia de ver que Paulo não tinha outros ajudantes disponíveis na prisão.
-[x] O fato de saber que a notícia de sua doença havia chegado aos seus irmãos em Filipos.
-[ ] A preocupação com a falta de fundos para custear seu tratamento médico em Roma.
--# Dica: A angústia de Epafrodito não era pela sua dor física, mas pelo impacto emocional que sua condição causou na igreja que o enviou.
+## Por que Epafrodito "esteve próximo da morte" e deve ser honrado?
+[ ] Devido a uma perseguição direta dos soldados romanos
+[x] Pela obra de Cristo, arriscando a vida para suprir a ausência da igreja
+[ ] Devido a um naufrágio durante a viagem para Roma
+[ ] Por causa de um jejum prolongado em favor de Paulo
+-# Dica: O risco de vida foi assumido para completar o serviço que a comunidade não podia fazer presencialmente.
 
 ---
 
-## Qual é a interpretação mais precisa do termo *harpagmos* ao descrever a mente de Cristo antes da encarnação?
-[ ] Jesus considerou sua divindade como um prêmio conquistado que precisava ser protegido.
-[x] Jesus não viu sua igualdade com Deus como algo a ser explorado para benefício próprio.
-[ ] Jesus abandonou sua natureza divina para assumir uma natureza puramente biológica.
-[ ] Jesus utilizou sua posição jurídica no céu para reivindicar autoridade sobre a terra.
--# Dica: O texto foca na escolha voluntária de Cristo em não utilizar Seu status divino para autopromoção.
+## Qual é a estrutura do movimento de Cristo descrita no hino dos versículos 6-11?
+[ ] Ascendente apenas: De homem a Deus
+[ ] Cíclica: De Deus para homem e reencarnação
+[x] Em forma de "V": Preexistência -> Humilhação -> Exaltação
+[ ] Linear horizontal: De profeta a Mestre
+-# Dica: Ele desce da glória máxima para a vergonha máxima, e é elevado novamente acima de tudo.
 
-## Qual relação litúrgica Paulo estabelece entre o seu martírio e a vida espiritual da igreja através do termo *spendomai*?
-[ ] Paulo se define como o sacrifício central, enquanto a igreja serve apenas como o local do altar.
-[ ] O martírio de Paulo é o elemento que compensa as falhas morais da congregação.
-[x] O sofrimento de Paulo é um acompanhamento derramado sobre o sacrifício maior da fé da igreja.
-[ ] Paulo assume o papel de sumo sacerdote para validar a oferta espiritual dos filipenses.
--# Dica: Na liturgia bíblica, a libação era o elemento secundário derramado sobre o sacrifício principal que já estava sendo oferecido.
+## O que significa a expressão "não julgou como usurpada" (ou *harpagmos* - algo a que se apegar) o ser igual a Deus?
+[ ] Que Jesus não quis roubar o lugar do Pai
+[x] Que Jesus não viu sua divindade como um privilégio para exploração própria
+[ ] Que Jesus duvidava de sua própria natureza divina
+[ ] Que Jesus precisou conquistar sua divindade na cruz
+-# Dica: Ele tinha o status por direito, mas escolheu não usá-lo para vantagem pessoal naquele momento.
 
-## A tensão entre a responsabilidade humana e a soberania divina justifica o "temor e tremor" do cristão devido a qual percepção?
-[ ] A percepção de que o esforço humano é o único escudo contra a depravação do mundo.
-[ ] O medo de que a salvação seja retirada caso o ritmo de boas obras diminua com o tempo.
-[x] A consciência de que Deus está operando ativamente dentro da própria vontade e ação do homem.
-[ ] A dúvida constante sobre se as obras do fiel serão aceitas no julgamento final.
--# Dica: O "temor" não vem do medo da punição, mas da reverência ao perceber que Deus é o motor interno da santificação.
+## Na base para a unidade cristã (v.1), Paulo apela para quais experiências espirituais compartilhadas?
+[ ] Milagres, Batismo, Ceia e Dízimos
+[x] Consolação em Cristo, Comunhão do Espírito e Afetos de misericórdia
+[ ] Profecia, Línguas, Cura e Discernimento
+[ ] Arrependimento, Fé, Esperança e Caridade
+-# Dica: Os apelos são relacionais e internos, ligados à vivência do amor e do Espírito.
 
-## Qual foi o motivo textual específico para o risco de morte enfrentado por Epafrodito?
-[ ] Uma doença tropical contraída durante a travessia de pântanos em missões macedônias.
-[x] O esforço extremo para completar o serviço de auxílio que a igreja não pôde prestar pessoalmente.
-[ ] Agressões sofridas por soldados romanos ao tentar acessar a cela de Paulo com as ofertas.
-[ ] A decisão de se entregar como prisioneiro substituto para permitir a fuga de Timóteo.
--# Dica: O encerramento do capítulo conecta o risco de vida à necessidade de preencher uma lacuna na assistência física e presencial ao apóstolo.
+## O que significa "desenvolvei a vossa salvação com temor e tremor"?
+[ ] Que a salvação não é segura e pode ser perdida a qualquer momento
+[ ] Que devemos ter medo constante do inferno
+[x] Que a vida cristã exige reverência e diligência séria na obediência
+[ ] Que a salvação é conquistada pelas obras humanas
+-# Dica: É uma resposta séria à graça de Deus, não um pânico de condenação.
+
+## Paulo se refere a si mesmo como sendo oferecido por "libação". O que isso significa no contexto de sacrifícios?
+[ ] Ele é o cordeiro principal do sacrifício
+[ ] Ele é o sacerdote que mata o animal
+[x] Ele é a oferta de bebida derramada sobre o sacrifício principal (a fé deles)
+[ ] Ele é o altar onde o fogo é aceso
+-# Dica: Paulo vê seu sofrimento como um complemento secundário à oferta principal, que é a fé da igreja.
+
+## Qual foi a causa específica da angústia de Epafrodito citada no texto?
+[ ] A dor física insuportável de sua doença
+[ ] A saudade de sua família em Filipos
+[x] O fato de saber que a igreja tinha ouvido falar que ele estava doente
+[ ] O medo de morrer sem ver Paulo liberto
+-# Dica: A preocupação dele era altruísta; ele estava triste porque vocês estavam preocupados.
+
+## A frase "todos buscam o que é seu" (v.21) serve de contraste para exaltar o caráter de quem?
+[ ] De Jesus
+[ ] De Paulo
+[x] De Timóteo
+[ ] De Epafrodito
+-# Dica: Paulo está explicando por que está enviando este discípulo específico e não outro.
+
+## Quando Paulo diz que Epafrodito "supriu o que faltava" ao serviço dos filipenses, a que se refere?
+[ ] À falta de generosidade financeira da igreja
+[ ] À falta de oração da igreja por Paulo
+[x] À impossibilidade física da presença da igreja em Roma
+[ ] À falta de fé da igreja na provisão divina
+-# Dica: Não era uma falha moral da igreja, mas uma limitação geográfica que Epafrodito preencheu.
+
+## O contraste central do hino cristológico se dá entre quais "Formas" (*Morphe*)?
+[ ] Forma de Rei vs. Forma de Escravo
+[ ] Forma de Anjo vs. Forma de Homem
+[x] Forma de Deus vs. Forma de Servo
+[ ] Forma de Criador vs. Forma de Criatura
+-# Dica: O texto usa termos específicos para descrever a essência divina e a posição assumida na encarnação.
+
+## Toda a confissão de que "Jesus Cristo é o Senhor" tem qual finalidade última?
+[ ] A vergonha dos poderes demoníacos
+[ ] A salvação da humanidade
+[x] A glória de Deus Pai
+[ ] A exaltação da Igreja
+-# Dica: O ciclo termina onde começou, remetendo tudo à Primeira Pessoa da Trindade.
+
+## A expressão "geração pervertida e corrupta" descreve o ambiente onde os cristãos devem:
+[ ] Se isolar para não se contaminar
+[ ] Julgar e condenar as práticas pagãs
+[x] Resplandecer como luminares
+[ ] Organizar uma revolução moral
+-# Dica: O papel da igreja é de contraste e iluminação, não de isolamento ou ataque político.
+
+## Paulo diz que, no Dia de Cristo, ele quer ter a glória de não ter "corrido em vão". Isso depende de quê?
+[ ] De sua própria fidelidade até a morte
+[x] Da perseverança e fidelidade dos filipenses
+[ ] Do número de igrejas plantadas na Ásia
+[ ] Da conversão de César ao cristianismo
+-# Dica: O apóstolo vincula o sucesso do seu trabalho apostólico à qualidade da fé de seus discípulos.
+
+## A cura de Epafrodito é atribuída a quê?
+[ ] Aos bons médicos de Roma
+[ ] À forte saúde do jovem
+[x] À misericórdia de Deus para com ele e Paulo
+[ ] Ao poder de cura do próprio Paulo
+-# Dica: Paulo reconhece que Deus evitou que ele tivesse "tristeza sobre tristeza".
+
+## A finalidade de Paulo ao ensinar a teologia profunda sobre Cristo (vv. 5-11) é:
+[ ] Combater uma heresia gnóstica específica
+[ ] Estabelecer um credo para ser recitado nos cultos
+[x] Fundamentar a ética de humildade e serviço na comunidade
+[ ] Provar aos romanos que Jesus era superior a César
+-# Dica: A teologia serve aqui como base para o comportamento prático ("Tende em vós...").
+
