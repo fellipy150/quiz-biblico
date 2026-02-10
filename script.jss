@@ -2,29 +2,15 @@
 //  GUARDIÕES DA PALAVRA - CORE SCRIPT V6.1
 // =========================================
 
-// 1. CONFIGURAÇÃO SUPABASE (Dados fornecidos)
+
+
+// =========================================
+//  CONFIGURAÇÃO SUPABASE (CORRIGIDA)
+// =========================================
 const SUPABASE_URL = "https://patdjmbjdzjuwdrehfoz.supabase.co";
 const SUPABASE_KEY = "sb_publishable_uQJTr6xrNAqfmKnTyNGcMw_S9q1wsXe";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// 2. ELEMENTOS DO DOM
-const listaEl = document.getElementById("lista-quizes");
-const quizStage = document.getElementById("quiz-stage");
-const barraProgressoEl = document.getElementById("barra-progresso-container");
-const tituloEl = document.getElementById("titulo-quiz");
-const displayTempoEl = document.getElementById("display-tempo");
-const telaSelecaoEl = document.getElementById("tela-selecao");
-
-// 3. ESTADO GLOBAL DO JOGO
-let perguntas = [];
-let indiceAtual = 0;
-let acertos = 0;
-let respondido = false;
-let modoJogo = null; 
-let dicasRestantes = 2;
-let tempoTotal = 30;
-let tempoRestante = tempoTotal;
-let timerInterval;
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // =========================================
 //  LÓGICA DO RANKING (SUPABASE)
@@ -48,8 +34,8 @@ async function enviarPontuacao() {
     btnSalvar.innerText = "Salvando...";
     btnSalvar.disabled = true;
 
-    // Chama a função SQL upsert_ranking que você criou no Supabase
-    const { error } = await supabase.rpc('upsert_ranking', {
+    // Usando o nome corrigido da variável: supabaseClient
+    const { error } = await supabaseClient.rpc('upsert_ranking', {
         p_nome: nome,
         p_pontuacao: calcularPontosFinais(),
         p_modo: modoJogo
@@ -75,7 +61,8 @@ window.abrirRanking = async function() {
     if(loader) loader.style.display = "block";
     if(lista) lista.innerHTML = "";
 
-    const { data, error } = await supabase
+    // Usando o nome corrigido da variável: supabaseClient
+    const { data, error } = await supabaseClient
         .from('ranking')
         .select('*')
         .order('pontuacao', { ascending: false })
