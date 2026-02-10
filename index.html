@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
-  <meta property="og:title" content="Guardiões da Palavra 🛡️📖">
+  <meta property="og:title" content="Guardiões da Palavra">
   <meta property="og:description" content="Quiz de treinamento para os Guardiões da Palavra (Equipe Verde) sobre o livro de Filipenses.">
   <meta property="og:image" content="https://fellipy150.github.io/quiz-biblico/logo2.png">
   <meta property="og:type" content="website">
@@ -27,26 +27,26 @@
       <img src="logo.png" alt="Guardiões da Palavra" class="logo-img">
     </div>
 
-    <h1>Treinamento Filipenses</h1>
+    <h1>Guardiões da Palavra</h1>
     <p style="text-align: center; font-size: 0.9rem; opacity: 0.9; margin-top: -10px; margin-bottom: 25px;">
-      Espaço exclusivo da Equipe Verde
+      Equipe Verde
     </p>
 
     <ul id="lista-quizes">
-      <p style="text-align:center;">Carregando treinamentos...</p>
+      <p style="text-align:center;">Carregando...</p>
     </ul>
   </main>
 
-  <button id="btn-abrir-ranking" class="floating-btn" onclick="abrirRanking()" title="Ver Ranking">
+  <button id="btn-abrir-ranking" class="floating-btn" onclick="abrirRanking()" title="Ranking">
     🏆
   </button>
 
   <div id="modal-ranking" class="modal-overlay" style="display:none;">
     <div class="card-quiz modal-content">
-      <h2 style="color:var(--brand-green); margin-top:0; text-align:center;">🏆 Top 10 Guardiões</h2>
+      <h2 style="color:var(--brand-green); margin-top:0; text-align:center;">🏆 Top 10</h2>
       
       <div id="lista-ranking-loader" style="text-align:center; padding: 20px;">
-        <p>Buscando dados no templo...</p>
+        <p>Carregando...</p>
       </div>
 
       <ul id="lista-ranking-container">
@@ -59,7 +59,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <script src="ranking.js"></script>
   <script src="game.js"></script>

@@ -13,19 +13,19 @@
 <body>
 
   <main>
-    <a href="index.html" class="btn-voltar">← Voltar ao início</a>
+    <a href="index.html" class="btn-voltar">← Voltar</a>
     
     <h1 id="titulo-quiz" style="margin-bottom: 10px;">Carregando...</h1>
 
     <div id="tela-selecao" style="display:none;">
       <div class="card-modo" onclick="iniciarJogo('normal')">
         <h3>🛡️ Modo Normal</h3>
-        <p>30 segundos por questão. Teste seu conhecimento sem pressa.</p>
+        <p>Treinamento, 30 segundos por questão. </p>
       </div>
 
       <div class="card-modo desafio" onclick="iniciarJogo('desafio')">
         <h3>🔥 Modo Desafio</h3>
-        <p>15 segundos! Errou uma vez, o treinamento acaba. Valendo 1.5x pontos.</p>
+        <p> Errou, fim de jogo. 15 segundos por questão. (mais pontos)</p>
       </div>
     </div>
 
@@ -41,7 +41,7 @@
   <canvas id="canvas-confete"></canvas>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <script src="ranking.js"></script>
   <script src="game.js"></script>
