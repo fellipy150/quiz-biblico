@@ -169,3 +169,4 @@
 [x] Fundamentar a ética de humildade e serviço na comunidade
 [ ] Provar aos romanos que Jesus era superior a César
 -# Dica: A teologia serve aqui como base para o comportamento prático ("Tende em vós...").
+

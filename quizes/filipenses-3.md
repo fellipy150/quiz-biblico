@@ -167,3 +167,4 @@
 [ ] Mestre de sabedoria que ensinará as nações
 [ ] Rei político que restaurará a monarquia em Israel
 -# Dica: O contexto de cidadania e corpo destaca o papel de quem resgata e transforma a natureza humana.
+
