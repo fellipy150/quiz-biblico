@@ -135,6 +135,8 @@
 [ ] Forma de Criador vs. Forma de Criatura
 -# Dica: O texto usa termos específicos para descrever a essência divina e a posição assumida na encarnação.
 
+---
+
 ## Toda a confissão de que "Jesus Cristo é o Senhor" tem qual finalidade última?
 [ ] A vergonha dos poderes demoníacos
 [ ] A salvação da humanidade

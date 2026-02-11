@@ -70,6 +70,8 @@
 [ ] A sabedoria de suas parábolas e o sermão da montanha
 -# Dica: O conhecimento não é teórico, mas vivencial, unindo glória (vida) e dor (cruz).
 
+---
+
 ## O que Paulo afirma sobre seu estado atual de "perfeição" ou maturidade completa?
 [ ] Que já alcançou a perfeição absoluta e não peca mais
 [ ] Que desistiu de ser perfeito pois a graça cobre tudo
@@ -125,6 +127,8 @@
 [x] Que eles eram dominados por seus apetites e desejos sensuais
 [ ] Que eles passavam fome e por isso priorizavam comida
 -# Dica: "Ventre" aqui representa o impulso carnal de autossatisfação imediata.
+
+---
 
 ## Em contraste com os que "só pensam nas coisas terrenas", onde está a cidadania (politeuma) do cristão?
 [ ] Na Roma imperial, que garantia direitos legais
