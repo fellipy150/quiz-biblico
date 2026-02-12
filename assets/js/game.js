@@ -38,7 +38,7 @@ function embaralhar(array) {
 // INICIALIZAÇÃO
 // =======================
 if (listaEl) {
-  fetch('quizes/index.json')
+  fetch('data/quizes/index.json')
     .then((res) => res.json())
     .then((dados) => {
       listaEl.innerHTML = dados
@@ -52,7 +52,7 @@ if (quizStage) {
   const idQuiz = params.get('id');
 
   if (idQuiz) {
-    fetch(`quizes/${idQuiz}.md`)
+    fetch(`data/quizes/${idQuiz}.md`)
       .then((res) => res.text())
       .then((text) => {
         processarMarkdown(text);
