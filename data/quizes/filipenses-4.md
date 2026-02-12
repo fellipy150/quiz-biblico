@@ -1,5 +1,5 @@
 # Filipenses Capítulo 4
-
+## Quiz Filipenses Cap 4
 id: d380e2a928
 ### Qual é a função teológica da doxologia (atribuição de glória a Deus) no encerramento desta seção da carta?
 [ ] Estabelecer a base trinitária para a benção apostólica final
