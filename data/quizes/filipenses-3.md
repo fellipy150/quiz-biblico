@@ -173,7 +173,8 @@ id: 3cd43254a1
 [ ] O poder oculto nos rituais de sepultamento
 -# Dica: A ressurreição é um ato de soberania cósmica sobre a matéria e a morte.
 
-## A expressão "conformar-se com ele na sua morte" sugere uma vida marcada por:
+id: 0d5387f516
+### A expressão "conformar-se com ele na sua morte" sugere uma vida marcada por:
 [ ] Uma busca intencional pelo martírio físico e suicídio
 [ ] Uma prática de autoflagelação para purificação
 [x] Uma disposição de morrer para o eu e sofrer pelo evangelho como Jesus

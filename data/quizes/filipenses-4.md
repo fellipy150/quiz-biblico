@@ -56,7 +56,8 @@ id: b58cdd5fe0
 [ ] Tudo o que for tradicional
 -# Dica: A lista de virtudes foca em qualidades éticas e estéticas que promovem a beleza moral, e não apenas em categorias teológicas ou rituais.
 
-## Paulo afirma que aprendeu o segredo de viver contente em qualquer situação, tanto na fartura quanto na...
+id: 68ed1fda14
+### Paulo afirma que aprendeu o segredo de viver contente em qualquer situação, tanto na fartura quanto na...
 [ ] Enfermidade física
 [x] Necessidade (ou fome)
 [ ] Perseguição política

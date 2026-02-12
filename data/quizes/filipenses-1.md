@@ -25,7 +25,8 @@ id: fe6a0b3aa4
 [ ] Para a dispersão massiva dos cristãos em Roma
 -# Dica: Paulo via suas algemas como um megafone, não como uma mordaça.
 
-## Complete a famosa frase de Paulo: "Porque para mim o viver é ______ e o morrer é ______."
+id: a7696bf39e
+### Complete a famosa frase de Paulo: "Porque para mim o viver é ______ e o morrer é ______."
 [ ] Pregar / Glória
 [ ] Trabalho / Descanso
 [x] Cristo / Lucro

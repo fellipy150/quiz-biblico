@@ -165,7 +165,8 @@ id: c0b7b70c53
 [ ] A exaltação da Igreja
 -# Dica: O ciclo termina onde começou, remetendo tudo à Primeira Pessoa da Trindade.
 
-## A expressão "geração pervertida e corrupta" descreve o ambiente onde os cristãos devem:
+id: 7239846585
+### A expressão "geração pervertida e corrupta" descreve o ambiente onde os cristãos devem:
 [ ] Se isolar para não se contaminar
 [ ] Julgar e condenar as práticas pagãs
 [x] Resplandecer como luminares
