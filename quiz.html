@@ -16,6 +16,9 @@
     <a href="index.html" class="btn-voltar">← Voltar</a>
     
     <h1 id="titulo-quiz" style="margin-bottom: 10px;">Carregando...</h1>
+    
+    <!-- NOVO: Container para a descrição do quiz -->
+    <div id="descricao-quiz" class="descricao-quiz" style="display:none;"></div>
 
     <div id="tela-selecao" style="display:none;">
       <div class="card-modo" onclick="iniciarJogo('normal')">
@@ -29,12 +32,7 @@
       </div>
     </div>
 
-
-
-
- 
- 
- <div id="barra-progresso-container" style="display:none;"></div>
+    <div id="barra-progresso-container" style="display:none;"></div>
 
     <div style="display: flex; justify-content: center; gap: 10px; width: 100%; margin-bottom: 10px;">
       <div id="display-tempo" class="timer-box" style="display:none;">⏱️ 30s</div>
@@ -42,17 +40,12 @@
     </div>
 
     <div id="quiz-stage" style="display:none;"></div>
-
- 
- 
- 
- 
  
   </main>
 
   <canvas id="canvas-confete"></canvas>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Script duplicado removido -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <script src="assets/js/ranking.js"></script>
@@ -60,3 +53,4 @@
   
 </body>
 </html>
+

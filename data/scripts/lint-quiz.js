@@ -1,142 +1,144 @@
-// lint-md.js
-// Execute dentro da pasta `quizes/`
-// node lint-md.js
-
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
-const QUIZ_DIR = __dirname;
-const arquivos = fs
-  .readdirSync(QUIZ_DIR)
-  .filter(n => n.endsWith(".md"));
+// Caminho para a pasta de quizes (mesmo padrão do gerar_index.js)
+const QUIZ_DIR = path.join(__dirname, "../quizes");
 
-/**
- * Regexes
- */
-// removes leading numbering como: "1.", "1)", "1 -", "1ª", "Nº 1", "No 1", "01."
+// ==========================================
+// CONFIGURAÇÕES E REGEX
+// ==========================================
+
+// Gera ID aleatório de 10 caracteres hex (5 bytes)
+const generateId = () => crypto.randomBytes(5).toString("hex");
+
+const ID_REGEX = /^id:\s*([0-9a-fA-F]{10})$/;
+const CATEGORIA_REGEX = /^<!--(.*)-->$/;
+const OPTION_REGEX = /^\s*\[([xX ]+)\]/;
+const EXPLICACAO_REGEX = /^(\s*-?!?\s*|explicaç[ãa]o\s*:|obs\s*:)\s*/i;
+const DICA_REGEX = /^(\s*-?#?\s*|dica\s*:)\s*/i;
 const NUM_REGEX = /^\s*(?:N(?:º|o|°)?\.?\s*)?(?:\d{1,4})(?:[.\)\-\ºª]*)\s*/i;
-// detecta variações de dica no início da linha: "- Dica:", "Dica:", "## Dica:" etc
-const DICA_REGEX = /^(\s*-?\s*#*\s*)?dica\s*[:\-]?\s*/i;
-// detecta alternativa marcada: [ ], [x], [X]
-const ALTERNATIVA_REGEX = /^\s*\[[ xX]\]/;
-// detecta regra horizontal '---' ou '***' (mantemos como está)
-const HR_REGEX = /^(-{3,}|\*{3,})\s*$/;
 
-function removeNumeracaoInicio(text, counters) {
-  const m = text.match(NUM_REGEX);
-  if (m) {
-    counters.numRemoved++;
-    return text.replace(NUM_REGEX, "");
-  }
-  return text;
+if (!fs.existsSync(QUIZ_DIR)) {
+  console.error(`❌ Diretório não encontrado: ${QUIZ_DIR}`);
+  process.exit(1);
 }
 
+const arquivos = fs.readdirSync(QUIZ_DIR).filter(n => n.endsWith(".md"));
+
 if (arquivos.length === 0) {
-  console.log("⚠️ Nenhum arquivo .md encontrado em:", QUIZ_DIR);
+  console.log("⚠️ Nenhum ficheiro .md encontrado em:", QUIZ_DIR);
   process.exit(0);
 }
 
+console.log(`🧹 Iniciando Linter em ${arquivos.length} ficheiros no caminho: ${QUIZ_DIR}\n`);
+
 arquivos.forEach(nome => {
   const caminho = path.join(QUIZ_DIR, nome);
-  const original = fs.readFileSync(caminho, "utf-8");
-  const linhasOrig = original.split(/\r?\n/);
+  const conteudoOriginal = fs.readFileSync(caminho, "utf-8");
+  const linhas = conteudoOriginal.replace(/\r\n/g, "\n").split("\n");
 
-  const counters = {
-    indentRemoved: 0,
-    trailingSpacesRemoved: 0,
-    numRemoved: 0,
-    tipsNormalized: 0,
-    titlesFixed: 0,
-  };
+  let novoConteudo = [];
+  let encontrouTituloInterno = false; // #
+  let encontrouTituloPagina = false;  // ##
+  let idEmEspera = null; 
 
-  let encontrouTituloPrincipal = false;
-  const out = [];
-  let blankStreak = 0;
+  let stats = { idsGerados: 0, titulosAjustados: 0, prefixosFixados: 0 };
 
-  for (let i = 0; i < linhasOrig.length; i++) {
-    let linha = linhasOrig[i];
+  for (let i = 0; i < linhas.length; i++) {
+    let linha = linhas[i].trim();
 
-    // 1) Remove indentação (espaços/tabs no início)
-    if (/^\s+/.test(linha)) {
-      linha = linha.replace(/^\s+/, "");
-      counters.indentRemoved++;
-    }
-
-    // 2) Remove espaços/tabs no final da linha
-    if (/[ \t]+$/.test(linha)) {
-      linha = linha.replace(/[ \t]+$/, "");
-      counters.trailingSpacesRemoved++;
-    }
-
-    // 3) Linha vazia: compacta múltiplas linhas vazias numa só
-    if (linha.trim() === "") {
-      blankStreak++;
-      if (blankStreak <= 1) out.push("");
-      continue;
-    } else {
-      blankStreak = 0;
-    }
-
-    // 4) Mantém regras horizontais (--- ou ***)
-    if (HR_REGEX.test(linha.trim())) {
-      out.push(linha.trim());
-      continue;
-    }
-
-    // 5) Normaliza dica (independente da forma original)
-    if (DICA_REGEX.test(linha)) {
-      const resto = linha.replace(DICA_REGEX, "").trim();
-      out.push(`-# Dica: ${resto}`);
-      counters.tipsNormalized++;
-      continue;
-    }
-
-    // 6) Títulos (qualquer linha que comece com #)
-    if (linha.startsWith("#")) {
-      // remove todos os # iniciais e espaços
-      let texto = linha.replace(/^#+\s*/, "").trim();
-      // remove numeração no início do texto (ex: "1. Blá blá")
-      texto = removeNumeracaoInicio(texto, counters).trim();
-
-      if (!encontrouTituloPrincipal) {
-        out.push(`# ${texto}`);
-        encontrouTituloPrincipal = true;
-        counters.titlesFixed++;
-      } else {
-        out.push(`## ${texto}`);
-        counters.titlesFixed++;
+    // 1. Linhas vazias: evita duplicados, mas mantém 1 para legibilidade
+    if (linha === "") {
+      if (novoConteudo.length > 0 && novoConteudo[novoConteudo.length - 1] !== "") {
+        novoConteudo.push("");
       }
       continue;
     }
 
-    // 7) Linhas que são alternativas ( [ ] / [x] ) - mantemos sem alterações
-    if (ALTERNATIVA_REGEX.test(linha)) {
-      out.push(linha);
+    // 2. Captura ID existente se houver
+    const matchId = linha.match(ID_REGEX);
+    if (matchId) {
+      idEmEspera = matchId[1].toLowerCase();
+      continue; 
+    }
+
+    // 3. Categorias (Preserva)
+    if (CATEGORIA_REGEX.test(linha)) {
+      novoConteudo.push(linha);
       continue;
     }
 
-    // 8) Para qualquer outra linha: remover numeração no início (ex: "1. Texto")
-    const semNum = removeNumeracaoInicio(linha, counters).trim();
+    // 4. Alternativas [ ] ou [x]
+    if (OPTION_REGEX.test(linha)) {
+      const isCorrect = linha.match(/\[[xX]\]/);
+      let texto = linha.replace(OPTION_REGEX, "").trim();
+      novoConteudo.push(`${isCorrect ? "[x]" : "[ ]"} ${texto}`);
+      continue;
+    }
 
-    // 9) Remover possíveis espaços sobrando e empurrar para saída
-    out.push(semNum);
+    // 5. Explicações de alternativas (-!)
+    if (linha.startsWith("-!") || linha.toLowerCase().startsWith("explica") || linha.toLowerCase().startsWith("obs:")) {
+      let texto = linha.replace(EXPLICACAO_REGEX, "").trim();
+      novoConteudo.push(`-! ${texto}`);
+      stats.prefixosFixados++;
+      continue;
+    }
+
+    // 6. Dicas de pergunta (-#)
+    if (linha.startsWith("-#") || linha.toLowerCase().startsWith("dica:")) {
+      let texto = linha.replace(DICA_REGEX, "").trim();
+      novoConteudo.push(`-# ${texto}`);
+      stats.prefixosFixados++;
+      continue;
+    }
+
+    // 7. Títulos e Perguntas
+    if (linha.startsWith("#") || linha.match(NUM_REGEX)) {
+      let textoLimpo = linha.replace(/^#+/, "").trim();
+      textoLimpo = textoLimpo.replace(NUM_REGEX, "").trim();
+
+      if (!encontrouTituloInterno) {
+        novoConteudo.push(`# ${textoLimpo}`);
+        encontrouTituloInterno = true;
+        stats.titulosAjustados++;
+      } 
+      else if (!encontrouTituloPagina && !textoLimpo.endsWith("?")) {
+        novoConteudo.push(`## ${textoLimpo}`);
+        encontrouTituloPagina = true;
+        stats.titulosAjustados++;
+      } 
+      else {
+        // É uma pergunta (###)
+        // Antes da pergunta, insere o ID (ou gera um novo)
+        const idFinal = idEmEspera || generateId();
+        if (!idEmEspera) stats.idsGerados++;
+        
+        novoConteudo.push(`id: ${idFinal}`);
+        novoConteudo.push(`### ${textoLimpo}`);
+        
+        idEmEspera = null; // Limpa o buffer
+        stats.titulosAjustados++;
+      }
+      continue;
+    }
+
+    // 8. Texto corrido (Provavelmente descrição)
+    novoConteudo.push(linha);
   }
 
-  const final = out.join("\n") + "\n"; // termina com newline
+  const final = novoConteudo.join("\n").trim() + "\n";
 
-  // Só regrava quando mudou (evita sobrescrever timestamp desnecessariamente)
-  if (final !== original) {
+  if (final !== conteudoOriginal) {
     fs.writeFileSync(caminho, final, "utf-8");
-    console.log(`🧹 ${nome} — lint aplicado:
-  • indent removida: ${counters.indentRemoved}
-  • espaços finais removidos: ${counters.trailingSpacesRemoved}
-  • numerações removidas: ${counters.numRemoved}
-  • dicas normalizadas: ${counters.tipsNormalized}
-  • títulos/preguntas normalizados: ${counters.titlesFixed}
-`);
+    console.log(`✅ ${nome}:
+    - IDs: ${stats.idsGerados} gerados
+    - Títulos: ${stats.titulosAjustados} normalizados
+    - Prefixos: ${stats.prefixosFixados} corrigidos`);
   } else {
-    console.log(`✅ ${nome} — sem alterações necessárias.`);
+    console.log(`✨ ${nome}: já estava formatado.`);
   }
 });
 
-console.log("🎯 Lint finalizado para todos os arquivos .md");
+console.log("\n🎯 Lint finalizado com sucesso!");
+
