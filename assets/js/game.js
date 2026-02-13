@@ -430,11 +430,12 @@ window.iniciarModoTreino = async function() {
     
     iniciarJogo('treino');
 
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao carregar modo treino.");
-    location.reload();
+ } catch (err) {
+    console.error("ERRO COMPLETO:", err);
+    alert("Erro Técnico: " + err.message); // This will tell us the real problem
+    // location.reload(); // Commented out so you can see the console
   }
+  
 };
 
 // =======================
