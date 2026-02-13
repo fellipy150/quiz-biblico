@@ -322,7 +322,7 @@ window.iniciarModoTreino = async function() {
   if(telaSelecaoEl) telaSelecaoEl.style.display = 'none';
 
   try {
-    const resIndex = await fetch('../quizes.index.json');
+    const resIndex = await fetch('../quizes/index.json');
     const quizList = await resIndex.json();
     
     let todasAsQuestoes = [];
