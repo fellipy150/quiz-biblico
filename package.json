@@ -9,11 +9,7 @@
     "preview": "vite preview",
      "predeploy": "npm run build", 
     "deploy": "gh-pages -d dist"
-  	                      
-  }
-
-    
-  },
+    },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fellipy150/quiz-biblico.git"
