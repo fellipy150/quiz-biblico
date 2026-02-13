@@ -1,4 +1,4 @@
-const fs = require("fs/promises");
+const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 
@@ -6,246 +6,314 @@ const crypto = require("crypto");
 // CONFIGURAÇÕES
 // ==========================================
 const CONFIG = {
-  // Ajuste o caminho se necessário (ex: '../assets/data/quizes' ou '../quizes')
-  QUIZ_DIR: path.join(__dirname, "../quizes"), 
+  QUIZ_DIR: path.join(__dirname, "../quizes"),
   INDEX_FILE: "index.json",
-  ID_LENGTH_BYTES: 5
+  ID_LENGTH: 5 // bytes -> 10 hex chars
 };
 
-// ==========================================
-// REGEX RIGOROSAS (CORRIGIDAS)
-// ==========================================
+// Regex de Validação Semântica
 const PATTERNS = {
-  // Bloco de código (preservar)
+  // Captura blocos de código markdown (descrição)
   MD_BLOCK: /^```/,
-  
-  // ID: id: xxxxxxxxxx
-  ID_VALID: /^id:\s*([0-9a-fA-F]{10})$/,
-  
-  // Opção: [ ] ou [x]
-  OPTION: /^\s*\[([xX ]+)\]/,
-  
-  // Explicação: Começa com "-!" OU "Explicação:" (Case insensitive)
-  // O erro anterior estava aqui (os '?' deixavam pegar qualquer coisa)
-  EXPLANATION: /^(?:-!\s*|explicaç[ãa]o\s*:|obs\s*:)/i,
-  
-  // Dica: Começa com "-#" OU "Dica:"
-  TIP: /^(?:-#\s*|dica\s*:)/i,
-  
-  // Títulos: #, ## ou ###
-  HEADING_HASH: /^#+/,
-  
-  // Categorias
-  CATEGORY: /^<!--.*-->$/,
-
-  // Detecta lixo gerado pelo script anterior (ex: "-! ### Titulo")
-  CORRUPTED_PREFIX: /^-!\s*(?=#)/
+  // Captura [x] ou [ ]
+  OPTION: /^\s*\[([xX ])\]\s*(.*)/, 
+  // Captura Dicas (Dica:, Tip:, -#)
+  TIP: /^(?:-#|dica\s*:|tip\s*:|#\s*dica)\s*(.*)/i, 
+  // Captura Explicações (-!, Explicação:)
+  EXPLANATION: /^(?:-!|explicaç[ãa]o\s*:|obs\s*:)\s*(.*)/i,
+  // Captura Comentários/Categorias
+  CATEGORY: /^<!--(.*)-->$/, 
+  // Captura IDs válidos
+  ID_VALID: /^id:\s*([0-9a-fA-F]{10})$/i
 };
 
-// Gera ID Hex
-const generateId = () => crypto.randomBytes(CONFIG.ID_LENGTH_BYTES).toString("hex");
+// ==========================================
+// MOTOR SEMÂNTICO (CLASSES)
+// ==========================================
 
-/**
- * Processa um único arquivo
- */
-async function processFile(fileName) {
-  const filePath = path.join(CONFIG.QUIZ_DIR, fileName);
-
-  try {
-    const contentHandle = await fs.readFile(filePath, "utf-8");
-    const lines = contentHandle.replace(/\r\n/g, "\n").split("\n");
+class QuizParser {
+  constructor(filePath) {
+    this.filePath = filePath;
+    this.fileName = path.basename(filePath);
+    this.rawContent = fs.readFileSync(filePath, "utf-8");
     
-    const newContent = [];
-    let titleForIndex = "";
-    
-    // Estado da Máquina
-    let state = {
-      inCodeBlock: false,
-      foundH1: false, // Título Interno #
-      foundH2: false, // Título Menu ##
-      pendingId: null,
-      lastLineWasEmpty: false
+    // Estrutura do Arquivo
+    this.header = {
+      internalTitle: null, // #
+      menuTitle: null,     // ##
+      description: [],     // Linhas dentro do ```md
+      rawDescription: []   // Linhas soltas antes das perguntas
     };
+    this.questions = [];
+  }
 
-    const stats = { idsGenerated: 0, titlesFixed: 0, prefixesFixed: 0, cleaned: 0 };
+  parse() {
+    const lines = this.rawContent.replace(/\r\n/g, "\n").split("\n");
+    let currentQuestion = null;
+    let inMdBlock = false;
+    let isHeaderSection = true;
 
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i].trim();
 
-      // 1. Preservar Blocos de Código (Descrição)
-      if (PATTERNS.MD_BLOCK.test(line)) {
-        state.inCodeBlock = !state.inCodeBlock;
-        newContent.push(line); // Mantém indentação original se possível
-        continue;
-      }
-      if (state.inCodeBlock) {
-        newContent.push(lines[i]); // Mantém conteúdo exato dentro do bloco
-        continue;
-      }
-
-      // 2. Limpeza de Arquivo Corrompido
-      // Remove o "-! " se ele estiver na frente de um "#" (erro do script anterior)
-      if (PATTERNS.CORRUPTED_PREFIX.test(line)) {
-        line = line.replace(PATTERNS.CORRUPTED_PREFIX, "").trim();
-        stats.cleaned++;
-      }
-      // Corrige "-! # Dica" para "-# Dica"
-      if (line.startsWith("-! # Dica") || line.startsWith("-! Dica")) {
-        line = line.replace(/^-!\s*#?\s*/, "-# ");
-        stats.cleaned++;
-      }
-
-      // 3. Linhas Vazias
-      if (line === "") {
-        if (!state.lastLineWasEmpty && newContent.length > 0) {
-          newContent.push("");
-          state.lastLineWasEmpty = true;
+      // 1. Bloco de Descrição (Prioridade Máxima)
+      if (line.startsWith("```")) {
+        inMdBlock = !inMdBlock;
+        if (inMdBlock) {
+           // Início do bloco
+           this.header.description.push("```md");
+        } else {
+           // Fim do bloco
+           this.header.description.push("```");
         }
         continue;
       }
-      state.lastLineWasEmpty = false;
+      if (inMdBlock) {
+        this.header.description.push(lines[i]); // Mantém indentação original
+        continue;
+      }
 
-      // 4. IDs
+      // Ignora linhas vazias, exceto se servirem para fechar uma pergunta anterior
+      if (line === "") continue;
+
+      // 2. Títulos Principais (# e ##)
+      if (line.startsWith("# ") && !this.header.internalTitle) {
+        this.header.internalTitle = line.replace("# ", "").trim();
+        continue;
+      }
+      if (line.startsWith("## ") && !this.header.menuTitle) {
+        this.header.menuTitle = line.replace("## ", "").trim();
+        continue;
+      }
+
+      // 3. Categorias (<!-- -->)
+      if (PATTERNS.CATEGORY.test(line)) {
+        // Se já estávamos lendo uma pergunta, salva ela antes de mudar de categoria
+        if (currentQuestion) {
+          this.questions.push(currentQuestion);
+          currentQuestion = null;
+        }
+        // Inicia "contexto" de nova pergunta já com a categoria definida
+        currentQuestion = this.createEmptyQuestion();
+        currentQuestion.category = line; // Guarda a linha inteira <!-- ... -->
+        isHeaderSection = false;
+        continue;
+      }
+
+      // 4. Detecção de Componentes da Pergunta
+      
+      // A) É um ID?
       if (line.toLowerCase().startsWith("id:")) {
         const match = line.match(PATTERNS.ID_VALID);
-        if (match) {
-          state.pendingId = match[1].toLowerCase();
-        } else {
-          state.pendingId = null; // ID inválido, será gerado um novo
+        // Se não temos uma pergunta ativa, cria uma
+        if (!currentQuestion) {
+            currentQuestion = this.createEmptyQuestion();
+            isHeaderSection = false;
         }
-        continue; // Espera o cabeçalho da pergunta
-      }
-
-      // 5. Categorias
-      if (PATTERNS.CATEGORY.test(line)) {
-        newContent.push(line);
+        // Se já temos uma pergunta COM enunciado, esse ID é o início da PRÓXIMA
+        else if (currentQuestion.enunciation) {
+             this.questions.push(currentQuestion);
+             currentQuestion = this.createEmptyQuestion();
+        }
+        
+        if (match) currentQuestion.id = match[1];
         continue;
       }
 
-      // 6. Opções [ ] / [x]
-      if (PATTERNS.OPTION.test(line)) {
-        const isCorrect = line.includes("[x]") || line.includes("[X]");
-        const text = line.replace(PATTERNS.OPTION, "").trim();
-        newContent.push(`${isCorrect ? "[x]" : "[ ]"} ${text}`);
+      // B) É uma Alternativa? [ ]
+      const matchOpt = line.match(PATTERNS.OPTION);
+      if (matchOpt) {
+        if (!currentQuestion) currentQuestion = this.createEmptyQuestion();
+        isHeaderSection = false;
+        
+        currentQuestion.options.push({
+          correct: matchOpt[1].toLowerCase() === "x",
+          text: matchOpt[2].trim(),
+          explanation: null
+        });
         continue;
       }
 
-      // 7. Dicas (-#)
-      // Checa antes de explicação para evitar conflito se regex for mal feita
-      if (line.startsWith("-#") || PATTERNS.TIP.test(line)) {
-        // Remove prefixos antigos (dica:, -#, etc)
-        const text = line.replace(/^(?:-#\s*|dica\s*:|#\s*dica\s*:)\s*/i, "").trim();
-        newContent.push(`-# Dica: ${text.replace(/^Dica:\s*/i, "")}`); // Padroniza "-# Dica: Texto"
-        stats.prefixesFixed++;
-        continue;
-      }
-
-      // 8. Explicações (-!)
-      if (line.startsWith("-!") || PATTERNS.EXPLANATION.test(line)) {
-        const text = line.replace(PATTERNS.EXPLANATION, "").trim();
-        newContent.push(`-! ${text}`);
-        stats.prefixesFixed++;
-        continue;
-      }
-
-      // 9. Títulos e Perguntas (#, ##, ###)
-      // Detecta se começa com # ou se é texto puro que deve virar título
-      if (line.startsWith("#")) {
-        let cleanText = line.replace(PATTERNS.HEADING_HASH, "").trim();
-
-        // Lógica de Hierarquia
-        if (!state.foundH1) {
-          // # Título Interno
-          newContent.push(`# ${cleanText}`);
-          state.foundH1 = true;
-          if (!titleForIndex) titleForIndex = cleanText;
-          stats.titlesFixed++;
-        } 
-        else if (!state.foundH2 && !cleanText.endsWith("?")) {
-          // ## Título Menu
-          newContent.push(`## ${cleanText}`);
-          state.foundH2 = true;
-          titleForIndex = cleanText;
-          stats.titlesFixed++;
-        } 
-        else {
-          // ### Pergunta
-          const idToUse = state.pendingId || generateId();
-          if (!state.pendingId) stats.idsGenerated++;
-
-          newContent.push(`id: ${idToUse}`);
-          newContent.push(`### ${cleanText}`);
-          state.pendingId = null;
-          stats.titlesFixed++;
+      // C) É uma Explicação? -!
+      const matchExpl = line.match(PATTERNS.EXPLANATION);
+      if (matchExpl) {
+        if (currentQuestion && currentQuestion.options.length > 0) {
+          // Anexa à última opção
+          const lastOpt = currentQuestion.options[currentQuestion.options.length - 1];
+          lastOpt.explanation = matchExpl[1].trim();
         }
         continue;
       }
 
-      // 10. Texto Comum (Descrição fora do bloco md, etc)
-      newContent.push(line);
+      // D) É uma Dica? -#
+      // AQUI ESTÁ A CORREÇÃO DA ANOMALIA:
+      // O script verifica explicitamente se é uma dica, mesmo que comece com ### errado
+      const matchTip = line.match(PATTERNS.TIP);
+      // Verifica também o caso anômalo "### Dica:" ou "-! # Dica"
+      const isAnomalyTip = /^(?:###|-!)\s*(?:dica|#\s*dica)/i.test(line);
+
+      if (matchTip || isAnomalyTip) {
+        let tipText = "";
+        if (matchTip) tipText = matchTip[1];
+        else tipText = line.replace(/^(?:###|-!)\s*(?:dica:?|#\s*dica:?)\s*/i, "");
+
+        if (currentQuestion) {
+          currentQuestion.tip = tipText.trim();
+        }
+        continue;
+      }
+
+      // E) Se não é nada acima, assume-se que é o ENUNCIADO ou TÍTULO
+      // Limpa marcadores antigos (###, 1., etc)
+      let cleanText = line.replace(/^#+\s*/, "").replace(/^\d+[\.)]\s*/, "").trim();
+      
+      // ANOMALIA: Se o texto for "Dica: ...", trata como dica da pergunta anterior
+      if (cleanText.toLowerCase().startsWith("dica:")) {
+          if (currentQuestion) currentQuestion.tip = cleanText.replace(/^dica:\s*/i, "").trim();
+          continue;
+      }
+
+      // Se ainda estamos na seção de cabeçalho e não parece pergunta, é descrição extra
+      if (isHeaderSection && !PATTERNS.OPTION.test(lines[i+1] || "")) {
+          // É apenas texto solto no começo do arquivo
+          this.header.rawDescription.push(line);
+      } else {
+          // É o Enunciado da Pergunta
+          if (currentQuestion && currentQuestion.enunciation) {
+              // Se já tinha enunciado, assume que é uma NOVA pergunta (ou quebra de linha do enunciado)
+              // Aqui simplificamos: assume nova pergunta se a anterior já tiver opções
+              if (currentQuestion.options.length > 0) {
+                  this.questions.push(currentQuestion);
+                  currentQuestion = this.createEmptyQuestion();
+              } else {
+                  // Concatena texto ao enunciado existente
+                  currentQuestion.enunciation += " " + cleanText; 
+                  continue;
+              }
+          }
+          
+          if (!currentQuestion) currentQuestion = this.createEmptyQuestion();
+          currentQuestion.enunciation = cleanText;
+          isHeaderSection = false;
+      }
     }
 
-    // Grava arquivo
-    const finalContent = newContent.join("\n").trim() + "\n";
-    if (finalContent !== contentHandle) {
-      await fs.writeFile(filePath, finalContent, "utf-8");
-      console.log(`✅ ${fileName}: Limpos: ${stats.cleaned} | IDs: ${stats.idsGenerated} | Títulos: ${stats.titlesFixed}`);
-    } else {
-      console.log(`✨ ${fileName}: Já estava correto.`);
-    }
+    // Push na última
+    if (currentQuestion) this.questions.push(currentQuestion);
+  }
 
+  createEmptyQuestion() {
     return {
-      fileName: fileName,
-      title: titleForIndex || fileName.replace(".md", "")
+      id: null,
+      category: null,
+      enunciation: null,
+      options: [],
+      tip: null
     };
+  }
 
-  } catch (err) {
-    console.error(`❌ Erro em ${fileName}:`, err.message);
-    return null;
+  reconstruct() {
+    let output = [];
+    let stats = { ids: 0, fixed: 0 };
+
+    // 1. Cabeçalho
+    if (this.header.internalTitle) output.push(`# ${this.header.internalTitle}`);
+    else output.push(`# ${this.fileName.replace(".md", "")}`);
+
+    if (this.header.menuTitle) output.push(`## ${this.header.menuTitle}`);
+    else if (this.header.internalTitle) output.push(`## ${this.header.internalTitle}`);
+    
+    output.push("");
+
+    // 2. Descrição (Prioriza bloco MD)
+    if (this.header.description.length > 0) {
+        output.push(...this.header.description);
+        output.push("");
+    } else if (this.header.rawDescription.length > 0) {
+        // Converte descrição solta para bloco MD
+        output.push("```md");
+        output.push(...this.header.rawDescription);
+        output.push("```");
+        output.push("");
+    }
+
+    // 3. Perguntas
+    this.questions.forEach(q => {
+      // Filtra perguntas lixo (sem enunciado ou sem opções)
+      if (!q.enunciation || q.options.length === 0) return;
+
+      if (q.category) output.push(q.category);
+      
+      // Garante ID
+      if (!q.id) {
+          q.id = crypto.randomBytes(5).toString("hex");
+          stats.ids++;
+      }
+      output.push(`id: ${q.id}`);
+
+      output.push(`### ${q.enunciation}`);
+
+      q.options.forEach(opt => {
+        output.push(`${opt.correct ? "[x]" : "[ ]"} ${opt.text}`);
+        if (opt.explanation) {
+          output.push(`-! ${opt.explanation}`);
+        }
+      });
+
+      if (q.tip) {
+        output.push(`-# Dica: ${q.tip.replace(/^Dica:\s*/i, "")}`);
+      }
+
+      output.push(""); // Linha em branco obrigatória
+    });
+
+    return { content: output.join("\n"), stats };
   }
 }
 
-/**
- * Função Principal
- */
-async function main() {
-  const indexJsonPath = path.join(CONFIG.QUIZ_DIR, CONFIG.INDEX_FILE);
+// ==========================================
+// FUNÇÃO PRINCIPAL
+// ==========================================
 
-  try {
-    // Valida diretório
-    await fs.access(CONFIG.QUIZ_DIR);
-    
-    // Lê arquivos
-    const allFiles = await fs.readdir(CONFIG.QUIZ_DIR);
-    const quizFiles = allFiles.filter(n => n.endsWith(".md"));
-
-    if (quizFiles.length === 0) {
-      console.log("⚠️ Nenhum arquivo .md encontrado.");
-      return;
-    }
-
-    console.log(`\n🚀 Processando ${quizFiles.length} arquivos...`);
-
-    // Processa todos
-    const results = await Promise.all(quizFiles.map(processFile));
-    const validResults = results.filter(r => r !== null);
-
-    // Gera Index
-    console.log(`\n🔄 Atualizando ${CONFIG.INDEX_FILE}...`);
-    const indexData = validResults.map(r => ({
-      arquivo: r.fileName.replace(".md", ""),
-      titulo: r.title
-    })).sort((a, b) => a.titulo.localeCompare(b.titulo));
-
-    await fs.writeFile(indexJsonPath, JSON.stringify(indexData, null, 2), "utf-8");
-
-    console.log(`🎉 Sucesso! Index gerado com ${validResults.length} quizes.`);
-
-  } catch (err) {
-    console.error("❌ Erro fatal:", err);
+function main() {
+  if (!fs.existsSync(CONFIG.QUIZ_DIR)) {
+    console.error(`❌ Pasta não encontrada: ${CONFIG.QUIZ_DIR}`);
+    process.exit(1);
   }
+
+  const files = fs.readdirSync(CONFIG.QUIZ_DIR).filter(n => n.endsWith(".md"));
+  const indexList = [];
+
+  console.log(`🚀 Iniciando Lint Semântico em ${files.length} arquivos...\n`);
+
+  files.forEach(file => {
+    const filePath = path.join(CONFIG.QUIZ_DIR, file);
+    
+    // 1. Parseia
+    const parser = new QuizParser(filePath);
+    parser.parse();
+    
+    // 2. Reconstrói Limpo
+    const { content, stats } = parser.reconstruct();
+    
+    // 3. Salva
+    fs.writeFileSync(filePath, content, "utf-8");
+    
+    // 4. Prepara Index
+    indexList.push({
+      arquivo: file.replace(".md", ""),
+      titulo: parser.header.menuTitle || parser.header.internalTitle || file.replace(".md", "")
+    });
+
+    console.log(`✅ ${file}: ${parser.questions.length} perguntas válidas (IDs novos: ${stats.ids})`);
+  });
+
+  // Salva Index
+  indexList.sort((a, b) => a.titulo.localeCompare(b.titulo));
+  fs.writeFileSync(path.join(CONFIG.QUIZ_DIR, CONFIG.INDEX_FILE), JSON.stringify(indexList, null, 2));
+
+  console.log(`\n🏁 Index.json atualizado com ${indexList.length} itens.`);
 }
 
 main();
-
 
