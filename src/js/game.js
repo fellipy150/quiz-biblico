@@ -127,7 +127,7 @@ function processarSRS(id, isCorrect, timeTakenSec) {
 // =======================
 
 if (listaEl) {
-  fetch('data/quizes/index.json')
+  fetch('../quizes/index.json')
     .then(res => res.json())
     .then(dados => {
       listaEl.innerHTML = dados
@@ -144,7 +144,7 @@ if (quizStage) {
   const idQuiz = params.get('id');
 
   if (idQuiz) {
-    fetch(`data/quizes/${idQuiz}.md`)
+    fetch(`../quizes/${idQuiz}.md`)
       .then(res => {
         if (!res.ok) throw new Error("Arquivo não encontrado");
         return res.text();
@@ -322,7 +322,7 @@ window.iniciarModoTreino = async function() {
   if(telaSelecaoEl) telaSelecaoEl.style.display = 'none';
 
   try {
-    const resIndex = await fetch('data/quizes/index.json');
+    const resIndex = await fetch('../quizes.index.json');
     const quizList = await resIndex.json();
     
     let todasAsQuestoes = [];
