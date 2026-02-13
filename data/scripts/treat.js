@@ -3,77 +3,100 @@ const path = require("path");
 const crypto = require("crypto");
 
 // ==========================================
-// CONFIGURATION & CONSTANTS
+// CONFIGURAÇÕES
 // ==========================================
 const CONFIG = {
-  QUIZ_DIR: path.join(__dirname, "../quizes"),
+  // Ajuste o caminho se necessário (ex: '../assets/data/quizes' ou '../quizes')
+  QUIZ_DIR: path.join(__dirname, "../quizes"), 
   INDEX_FILE: "index.json",
   ID_LENGTH_BYTES: 5
 };
 
-// Pre-compiled Regex Patterns for Performance
+// ==========================================
+// REGEX RIGOROSAS (CORRIGIDAS)
+// ==========================================
 const PATTERNS = {
-  ID_VALID: /^id:\s*([0-9a-fA-F]{10})$/,
-  ID_ANY: /^id:\s*(.*)$/i,
-  CATEGORY: /^$/,
-  OPTION: /^\s*\[([xX ]+)\]/,
-  EXPLANATION: /^(\s*-?!?\s*|explicaç[ãa]o\s*:|obs\s*:)\s*/i,
-  TIP: /^(\s*-?#?\s*|dica\s*:)\s*/i,
-  // Matches "1.", "Nº 1", "Question 1", or just "#"
-  HEADING_START: /^\s*(?:N(?:º|o|°)?\.?\s*)?(?:\d{1,4})(?:[.\)\-\ºª]*)\s*/i,
+  // Bloco de código (preservar)
   MD_BLOCK: /^```/,
-  HEADING_HASH: /^#+/
+  
+  // ID: id: xxxxxxxxxx
+  ID_VALID: /^id:\s*([0-9a-fA-F]{10})$/,
+  
+  // Opção: [ ] ou [x]
+  OPTION: /^\s*\[([xX ]+)\]/,
+  
+  // Explicação: Começa com "-!" OU "Explicação:" (Case insensitive)
+  // O erro anterior estava aqui (os '?' deixavam pegar qualquer coisa)
+  EXPLANATION: /^(?:-!\s*|explicaç[ãa]o\s*:|obs\s*:)/i,
+  
+  // Dica: Começa com "-#" OU "Dica:"
+  TIP: /^(?:-#\s*|dica\s*:)/i,
+  
+  // Títulos: #, ## ou ###
+  HEADING_HASH: /^#+/,
+  
+  // Categorias
+  CATEGORY: /^<!--.*-->$/,
+
+  // Detecta lixo gerado pelo script anterior (ex: "-! ### Titulo")
+  CORRUPTED_PREFIX: /^-!\s*(?=#)/
 };
 
-// Helper: Generate Hex ID
+// Gera ID Hex
 const generateId = () => crypto.randomBytes(CONFIG.ID_LENGTH_BYTES).toString("hex");
 
 /**
- * Processes a single Markdown file: lints content and extracts metadata.
- * @param {string} fileName 
- * @returns {Promise<{ fileName: string, title: string, stats: object } | null>}
+ * Processa um único arquivo
  */
 async function processFile(fileName) {
   const filePath = path.join(CONFIG.QUIZ_DIR, fileName);
 
   try {
     const contentHandle = await fs.readFile(filePath, "utf-8");
-    
-    // Normalize line endings immediately
     const lines = contentHandle.replace(/\r\n/g, "\n").split("\n");
     
     const newContent = [];
     let titleForIndex = "";
     
-    // State Machine
+    // Estado da Máquina
     let state = {
       inCodeBlock: false,
-      foundH1: false, // Internal #
-      foundH2: false, // Page ##
+      foundH1: false, // Título Interno #
+      foundH2: false, // Título Menu ##
       pendingId: null,
       lastLineWasEmpty: false
     };
 
-    const stats = { idsGenerated: 0, titlesFixed: 0, prefixesFixed: 0 };
+    const stats = { idsGenerated: 0, titlesFixed: 0, prefixesFixed: 0, cleaned: 0 };
 
-    for (let line of lines) {
-      const trimmed = line.trim();
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i].trim();
 
-      // 1. Code Blocks (Preserve strictly)
+      // 1. Preservar Blocos de Código (Descrição)
       if (PATTERNS.MD_BLOCK.test(line)) {
         state.inCodeBlock = !state.inCodeBlock;
-        newContent.push(line);
-        state.lastLineWasEmpty = false;
+        newContent.push(line); // Mantém indentação original se possível
         continue;
       }
-
       if (state.inCodeBlock) {
-        newContent.push(line);
+        newContent.push(lines[i]); // Mantém conteúdo exato dentro do bloco
         continue;
       }
 
-      // 2. Empty Lines (Collapse multiple empty lines)
-      if (trimmed === "") {
+      // 2. Limpeza de Arquivo Corrompido
+      // Remove o "-! " se ele estiver na frente de um "#" (erro do script anterior)
+      if (PATTERNS.CORRUPTED_PREFIX.test(line)) {
+        line = line.replace(PATTERNS.CORRUPTED_PREFIX, "").trim();
+        stats.cleaned++;
+      }
+      // Corrige "-! # Dica" para "-# Dica"
+      if (line.startsWith("-! # Dica") || line.startsWith("-! Dica")) {
+        line = line.replace(/^-!\s*#?\s*/, "-# ");
+        stats.cleaned++;
+      }
+
+      // 3. Linhas Vazias
+      if (line === "") {
         if (!state.lastLineWasEmpty && newContent.length > 0) {
           newContent.push("");
           state.lastLineWasEmpty = true;
@@ -82,161 +105,147 @@ async function processFile(fileName) {
       }
       state.lastLineWasEmpty = false;
 
-      // 3. ID Handling (Buffer logic)
-      if (trimmed.toLowerCase().startsWith("id:")) {
-        const match = trimmed.match(PATTERNS.ID_VALID);
+      // 4. IDs
+      if (line.toLowerCase().startsWith("id:")) {
+        const match = line.match(PATTERNS.ID_VALID);
         if (match) {
           state.pendingId = match[1].toLowerCase();
         } else {
-          // Invalid ID found, discard it so we generate a fresh one at the next question
-          state.pendingId = null; 
+          state.pendingId = null; // ID inválido, será gerado um novo
         }
-        continue; // Don't push yet, wait for the question header
+        continue; // Espera o cabeçalho da pergunta
       }
 
-      // 4. Categories (Preserve)
-      if (PATTERNS.CATEGORY.test(trimmed)) {
-        newContent.push(trimmed);
+      // 5. Categorias
+      if (PATTERNS.CATEGORY.test(line)) {
+        newContent.push(line);
         continue;
       }
 
-      // 5. Options [ ] / [x]
-      if (PATTERNS.OPTION.test(trimmed)) {
-        const isCorrect = trimmed.includes("[x]") || trimmed.includes("[X]");
-        const text = trimmed.replace(PATTERNS.OPTION, "").trim();
+      // 6. Opções [ ] / [x]
+      if (PATTERNS.OPTION.test(line)) {
+        const isCorrect = line.includes("[x]") || line.includes("[X]");
+        const text = line.replace(PATTERNS.OPTION, "").trim();
         newContent.push(`${isCorrect ? "[x]" : "[ ]"} ${text}`);
         continue;
       }
 
-      // 6. Explanations (-!)
-      if (trimmed.startsWith("-!") || PATTERNS.EXPLANATION.test(trimmed)) {
-        if (!trimmed.startsWith("-!")) stats.prefixesFixed++;
-        const text = trimmed.replace(PATTERNS.EXPLANATION, "").trim();
+      // 7. Dicas (-#)
+      // Checa antes de explicação para evitar conflito se regex for mal feita
+      if (line.startsWith("-#") || PATTERNS.TIP.test(line)) {
+        // Remove prefixos antigos (dica:, -#, etc)
+        const text = line.replace(/^(?:-#\s*|dica\s*:|#\s*dica\s*:)\s*/i, "").trim();
+        newContent.push(`-# Dica: ${text.replace(/^Dica:\s*/i, "")}`); // Padroniza "-# Dica: Texto"
+        stats.prefixesFixed++;
+        continue;
+      }
+
+      // 8. Explicações (-!)
+      if (line.startsWith("-!") || PATTERNS.EXPLANATION.test(line)) {
+        const text = line.replace(PATTERNS.EXPLANATION, "").trim();
         newContent.push(`-! ${text}`);
+        stats.prefixesFixed++;
         continue;
       }
 
-      // 7. Tips (-#)
-      if (trimmed.startsWith("-#") || PATTERNS.TIP.test(trimmed)) {
-        if (!trimmed.startsWith("-#")) stats.prefixesFixed++;
-        const text = trimmed.replace(PATTERNS.TIP, "").trim();
-        newContent.push(`-# ${text}`);
-        continue;
-      }
+      // 9. Títulos e Perguntas (#, ##, ###)
+      // Detecta se começa com # ou se é texto puro que deve virar título
+      if (line.startsWith("#")) {
+        let cleanText = line.replace(PATTERNS.HEADING_HASH, "").trim();
 
-      // 8. Headings Logic (#, ##, ###)
-      const isHeaderStart = trimmed.startsWith("#") || (PATTERNS.HEADING_START.test(trimmed) && !trimmed.startsWith("-"));
-      
-      if (isHeaderStart) {
-        let cleanText = trimmed.replace(PATTERNS.HEADING_HASH, "").trim(); // Remove #
-        cleanText = cleanText.replace(PATTERNS.HEADING_START, "").trim(); // Remove "1." or "Nº"
-
-        // Determine Header Level based on file history
+        // Lógica de Hierarquia
         if (!state.foundH1) {
-          // Internal Quiz Title
+          // # Título Interno
           newContent.push(`# ${cleanText}`);
           state.foundH1 = true;
-          // Use this as fallback title if needed
           if (!titleForIndex) titleForIndex = cleanText;
           stats.titlesFixed++;
         } 
         else if (!state.foundH2 && !cleanText.endsWith("?")) {
-          // Page Title
+          // ## Título Menu
           newContent.push(`## ${cleanText}`);
           state.foundH2 = true;
-          // This is the preferred title for the index
           titleForIndex = cleanText;
           stats.titlesFixed++;
         } 
         else {
-          // Question (###)
+          // ### Pergunta
           const idToUse = state.pendingId || generateId();
           if (!state.pendingId) stats.idsGenerated++;
 
           newContent.push(`id: ${idToUse}`);
           newContent.push(`### ${cleanText}`);
-          
-          state.pendingId = null; // Reset buffer
+          state.pendingId = null;
           stats.titlesFixed++;
         }
         continue;
       }
 
-      // 9. Standard Text
+      // 10. Texto Comum (Descrição fora do bloco md, etc)
       newContent.push(line);
     }
 
-    // Finalize content
+    // Grava arquivo
     const finalContent = newContent.join("\n").trim() + "\n";
-    
-    // Write only if changed (Idempotency)
     if (finalContent !== contentHandle) {
       await fs.writeFile(filePath, finalContent, "utf-8");
-      console.log(`✅ Fixed: ${fileName} (IDs: ${stats.idsGenerated}, Titles: ${stats.titlesFixed})`);
+      console.log(`✅ ${fileName}: Limpos: ${stats.cleaned} | IDs: ${stats.idsGenerated} | Títulos: ${stats.titlesFixed}`);
+    } else {
+      console.log(`✨ ${fileName}: Já estava correto.`);
     }
 
-    // Return Metadata for Index
     return {
       fileName: fileName,
-      // Fallback: if no H1/H2 found, use filename
-      title: titleForIndex || fileName.replace(".md", ""),
-      stats
+      title: titleForIndex || fileName.replace(".md", "")
     };
 
   } catch (err) {
-    console.error(`❌ Error processing ${fileName}:`, err.message);
+    console.error(`❌ Erro em ${fileName}:`, err.message);
     return null;
   }
 }
 
 /**
- * Main Orchestrator
+ * Função Principal
  */
 async function main() {
   const indexJsonPath = path.join(CONFIG.QUIZ_DIR, CONFIG.INDEX_FILE);
 
-  // 1. Validate Directory
   try {
+    // Valida diretório
     await fs.access(CONFIG.QUIZ_DIR);
-  } catch {
-    console.error(`❌ Directory not found: ${CONFIG.QUIZ_DIR}`);
-    process.exit(1);
+    
+    // Lê arquivos
+    const allFiles = await fs.readdir(CONFIG.QUIZ_DIR);
+    const quizFiles = allFiles.filter(n => n.endsWith(".md"));
+
+    if (quizFiles.length === 0) {
+      console.log("⚠️ Nenhum arquivo .md encontrado.");
+      return;
+    }
+
+    console.log(`\n🚀 Processando ${quizFiles.length} arquivos...`);
+
+    // Processa todos
+    const results = await Promise.all(quizFiles.map(processFile));
+    const validResults = results.filter(r => r !== null);
+
+    // Gera Index
+    console.log(`\n🔄 Atualizando ${CONFIG.INDEX_FILE}...`);
+    const indexData = validResults.map(r => ({
+      arquivo: r.fileName.replace(".md", ""),
+      titulo: r.title
+    })).sort((a, b) => a.titulo.localeCompare(b.titulo));
+
+    await fs.writeFile(indexJsonPath, JSON.stringify(indexData, null, 2), "utf-8");
+
+    console.log(`🎉 Sucesso! Index gerado com ${validResults.length} quizes.`);
+
+  } catch (err) {
+    console.error("❌ Erro fatal:", err);
   }
-
-  // 2. Get Files
-  const allFiles = await fs.readdir(CONFIG.QUIZ_DIR);
-  const quizFiles = allFiles.filter(n => n.endsWith(".md"));
-
-  if (quizFiles.length === 0) {
-    console.log("⚠️ No .md files found.");
-    process.exit(0);
-  }
-
-  console.log(`\n🚀 Starting optimization on ${quizFiles.length} files...`);
-
-  // 3. Process Files in Parallel
-  const results = await Promise.all(quizFiles.map(processFile));
-  
-  // Filter out nulls (errors)
-  const validResults = results.filter(r => r !== null);
-
-  // 4. Generate Index
-  console.log(`\n🔄 Generating ${CONFIG.INDEX_FILE}...`);
-  
-  const indexData = validResults.map(r => ({
-    arquivo: r.fileName.replace(".md", ""),
-    titulo: r.title
-  })).sort((a, b) => a.titulo.localeCompare(b.titulo));
-
-  await fs.writeFile(
-    indexJsonPath, 
-    JSON.stringify(indexData, null, 2), 
-    "utf-8"
-  );
-
-  console.log(`✨ Success! Processed ${validResults.length} files.`);
-  console.log(`📂 Index saved at: ${indexJsonPath}`);
 }
 
-// Execute
 main();
+
+
