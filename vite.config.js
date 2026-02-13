@@ -6,20 +6,25 @@ export default defineConfig(({ command }) => {
   const isBuild = command === 'build'
 
   return {
-    // 1. Define a pasta raiz de desenvolvimento
     root: 'src',
-
-    // 2. Base Path Dinâmico: 
-    // No dev usa a raiz '/'. No build usa o nome do repositório no GitHub.
     base: isBuild ? '/quiz-biblico/' : '/',
 
     plugins: [
       viteStaticCopy({
         targets: [
+          // 1. Copia as pastas de conteúdo
           {
-            // Pega as pastas de src e joga na raiz de dist
-            src: ['quizes/**/*', 'img/**/*'],
-            dest: './' 
+            src: 'quizes', // Pega a pasta inteira src/quizes
+            dest: ''       // Joga na raiz de dist/
+          },
+          {
+            src: 'img',    // Pega a pasta inteira src/img
+            dest: ''       // Joga na raiz de dist/
+          },
+          // 2. CRUCIAL: Cria o arquivo .nojekyll para o GitHub não bloquear JSON/MD
+          {
+            src: '../.nojekyll', // Vamos criar esse arquivo na raiz do projeto agora
+            dest: ''
           }
         ]
       })
@@ -42,16 +47,7 @@ export default defineConfig(({ command }) => {
         }
       }
     },
-
-    resolve: {
-      alias: {
-        '@': resolve(__dirname, 'src')
-      }
-    },
-
-    server: {
-      port: 5173,
-      open: true
-    }
+    resolve: { alias: { '@': resolve(__dirname, 'src') } },
+    server: { port: 5173, open: true }
   }
 })
