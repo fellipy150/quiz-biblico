@@ -18,20 +18,26 @@ export default defineConfig(({ command }) => {
     // Na build: '/quiz-biblico/' (nome exato do seu repositório no GitHub)
     base: isBuild ? '/quiz-biblico/' : '/',
 
-    plugins: [
-      viteStaticCopy({
-        targets: [
-          {
-            src: 'quizes', 
-            dest: '' // Copia src/quizes para dist/quizes
-          },
-          {
-            src: 'img', 
-            dest: '' // Copia src/img para dist/img
-          }
-        ]
-      })
-    ],
+
+plugins: [
+  viteStaticCopy({
+    targets: [
+      {
+        // Pega tudo dentro de quizes e joga na pasta quizes da dist
+        src: 'quizes/**/*', 
+        dest: 'quizes' 
+      },
+      {
+        // Pega tudo dentro de img e joga na pasta img da dist
+        src: 'img/**/*', 
+        dest: 'img' 
+      }
+    ]
+  })
+],
+ 
+
+
 
     build: {
       outDir: '../dist',
