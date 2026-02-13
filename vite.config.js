@@ -1,31 +1,33 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
-import { viteStaticCopy } from 'vite-plugin-static-copy' // <--- 1. Importação do plugin
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 export default defineConfig(({ command }) => {
-  const isDev = command === 'serve'
+  const isBuild = command === 'build'
 
   return {
+    // =========================
+    // 📁 Raiz do projeto fonte
+    // =========================
     root: 'src',
-    base: './', // Caminho relativo para funcionar em qualquer lugar
 
     // =========================
-    // 🔌 Configuração dos Plugins
+    // 🌍 Base path (Dinâmico)
     // =========================
+    // No dev: '/' (raiz do localhost)
+    // Na build: '/quiz-biblico/' (nome exato do seu repositório no GitHub)
+    base: isBuild ? '/quiz-biblico/' : '/',
+
     plugins: [
       viteStaticCopy({
         targets: [
           {
-            // Pega a pasta 'quizes' dentro de 'src'
             src: 'quizes', 
-            // Copia para a raiz da pasta 'dist' (mantendo o nome da pasta)
-            dest: '' 
+            dest: '' // Copia src/quizes para dist/quizes
           },
           {
-            // Pega a pasta 'img' dentro de 'src'
             src: 'img', 
-            // Copia para a raiz da pasta 'dist'
-            dest: '' 
+            dest: '' // Copia src/img para dist/img
           }
         ]
       })
@@ -34,7 +36,7 @@ export default defineConfig(({ command }) => {
     build: {
       outDir: '../dist',
       emptyOutDir: true,
-      sourcemap: isDev,
+      sourcemap: !isBuild,
       assetsDir: 'assets',
 
       rollupOptions: {
