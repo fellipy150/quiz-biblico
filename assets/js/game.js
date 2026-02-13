@@ -169,11 +169,7 @@ if (quizStage) {
   }
 }
 
-// =======================
-// PARSERS (MARKDOWN)
-// =======================
 
-// Parser Original (com efeitos colaterais no DOM para Modo Normal)
 function processarMarkdown(md) {
   const linhas = md.replace(/\r\n/g, '\n').split('\n');
   let descricaoBuffer = '';
@@ -199,8 +195,12 @@ function processarMarkdown(md) {
 
     if (l.startsWith('## ')) return;
 
+    // SAFETY CHECK APPLIED HERE
     const matchCat = l.match(/^/);
-    if (matchCat) { categoriaAtual = matchCat[1].trim(); return; }
+    if (matchCat && matchCat[1] !== undefined) { 
+      categoriaAtual = matchCat[1].trim(); 
+      return; 
+    }
 
     if (l.startsWith('id:')) {
       if (perguntaAtual) salvarPergunta(perguntaAtual, todasPerguntas);
@@ -248,6 +248,76 @@ function processarMarkdown(md) {
     descricaoEl.style.display = 'block';
   }
 }
+
+// Parser Puro (Sem DOM) para carregar múltiplas listas no Modo Treino
+function extrairPerguntasDoTexto(md, filePrefix) {
+  const linhas = md.replace(/\r\n/g, '\n').split('\n');
+  let extracted = [];
+  let pAtual = null;
+  let catAtual = 'Geral';
+  let ultOpcao = null;
+
+  linhas.forEach((linha) => {
+    const l = linha.trim();
+    if (!l) return;
+    
+    // SAFETY CHECK APPLIED HERE
+    const matchCat = l.match(/^/);
+    if (matchCat && matchCat[1] !== undefined) { 
+      catAtual = matchCat[1].trim(); 
+      return; 
+    }
+
+    if (l.startsWith('id:')) {
+      if (pAtual) salvarPergunta(pAtual, extracted);
+      // Cria ID único prefixando com nome do arquivo
+      const rawId = l.replace('id:', '').trim();
+      const uniqueId = `${filePrefix.replace('.md','')}-${rawId}`;
+      
+      pAtual = {
+        id: uniqueId, 
+        categoria: catAtual,
+        enunciado: '',
+        opcoes: [],
+        dica: null
+      };
+      return;
+    }
+
+    if (l.startsWith('### ') && pAtual) {
+      pAtual.enunciado = l.replace('### ', '').trim();
+      return;
+    }
+
+    if ((l.startsWith('[ ]') || l.startsWith('[x]')) && pAtual) {
+      const isCorrect = l.startsWith('[x]');
+      const text = l.replace(/\[(x| )\]/, '').trim();
+      ultOpcao = { texto: text, correta: isCorrect, explicacao: null };
+      pAtual.opcoes.push(ultOpcao);
+      return;
+    }
+
+    if (l.startsWith('-!') && ultOpcao) {
+      ultOpcao.explicacao = l.replace('-!', '').trim();
+      return;
+    }
+    
+    if (l.startsWith('-#') && pAtual) {
+      pAtual.dica = l.replace('-#', '').trim();
+    }
+  });
+
+  if (pAtual) salvarPergunta(pAtual, extracted);
+  return extracted;
+}
+
+
+
+
+
+
+
+
 
 // Parser Puro (Sem DOM) para carregar múltiplas listas no Modo Treino
 function extrairPerguntasDoTexto(md, filePrefix) {
