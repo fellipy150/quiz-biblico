@@ -1,5 +1,5 @@
 // =========================================
-//  GAME.JS - Motor de Jogo (Versão 3.0 - SRS)
+//  GAME.JS - Motor de Jogo (Versão 3.1 - Fixed)
 // =========================================
 
 // Elementos do DOM
@@ -49,7 +49,7 @@ function converterMarkdownSimples(texto) {
 }
 
 // =======================
-// STORAGE & SRS LOGIC (Novas Funções)
+// STORAGE & SRS LOGIC
 // =======================
 
 function getSRSData() {
@@ -71,14 +71,10 @@ window.resetarMemoriaSRS = function() {
 
 /**
  * Algoritmo SM-2 (Spaced Repetition)
- * @param {string} id - ID único da questão
- * @param {boolean} isCorrect - Se acertou
- * @param {number} timeTakenSec - Tempo levado em segundos
  */
 function processarSRS(id, isCorrect, timeTakenSec) {
   const db = getSRSData();
   
-  // Default: Primeira vez vendo a carta
   let entry = db[id] || { 
     lastReviewed: 0, 
     interval: 0, 
@@ -87,7 +83,6 @@ function processarSRS(id, isCorrect, timeTakenSec) {
   };
 
   // 1. Calcular Qualidade (0-5)
-  // 5: Perfeito (<10s), 4: Bom (<20s), 3: Passou (<30s), 2: Difícil (>30s), 0: Errou
   let quality = 0;
   if (isCorrect) {
     if (timeTakenSec < 10) quality = 5;
@@ -107,7 +102,6 @@ function processarSRS(id, isCorrect, timeTakenSec) {
   let newReps = entry.reps;
 
   if (quality < 3) {
-    // Falhou ou achou muito difícil: Reseta
     newReps = 0;
     newInterval = 1;
   } else {
@@ -169,6 +163,9 @@ if (quizStage) {
   }
 }
 
+// =======================
+// PARSERS (MARKDOWN)
+// =======================
 
 function processarMarkdown(md) {
   const linhas = md.replace(/\r\n/g, '\n').split('\n');
@@ -195,7 +192,7 @@ function processarMarkdown(md) {
 
     if (l.startsWith('## ')) return;
 
-    // SAFETY CHECK APPLIED HERE
+    // FIX: Correct Regex for Categories
     const matchCat = l.match(/^/);
     if (matchCat && matchCat[1] !== undefined) { 
       categoriaAtual = matchCat[1].trim(); 
@@ -261,7 +258,7 @@ function extrairPerguntasDoTexto(md, filePrefix) {
     const l = linha.trim();
     if (!l) return;
     
-    // SAFETY CHECK APPLIED HERE
+    // FIX: Correct Regex for Categories
     const matchCat = l.match(/^/);
     if (matchCat && matchCat[1] !== undefined) { 
       catAtual = matchCat[1].trim(); 
@@ -270,73 +267,6 @@ function extrairPerguntasDoTexto(md, filePrefix) {
 
     if (l.startsWith('id:')) {
       if (pAtual) salvarPergunta(pAtual, extracted);
-      // Cria ID único prefixando com nome do arquivo
-      const rawId = l.replace('id:', '').trim();
-      const uniqueId = `${filePrefix.replace('.md','')}-${rawId}`;
-      
-      pAtual = {
-        id: uniqueId, 
-        categoria: catAtual,
-        enunciado: '',
-        opcoes: [],
-        dica: null
-      };
-      return;
-    }
-
-    if (l.startsWith('### ') && pAtual) {
-      pAtual.enunciado = l.replace('### ', '').trim();
-      return;
-    }
-
-    if ((l.startsWith('[ ]') || l.startsWith('[x]')) && pAtual) {
-      const isCorrect = l.startsWith('[x]');
-      const text = l.replace(/\[(x| )\]/, '').trim();
-      ultOpcao = { texto: text, correta: isCorrect, explicacao: null };
-      pAtual.opcoes.push(ultOpcao);
-      return;
-    }
-
-    if (l.startsWith('-!') && ultOpcao) {
-      ultOpcao.explicacao = l.replace('-!', '').trim();
-      return;
-    }
-    
-    if (l.startsWith('-#') && pAtual) {
-      pAtual.dica = l.replace('-#', '').trim();
-    }
-  });
-
-  if (pAtual) salvarPergunta(pAtual, extracted);
-  return extracted;
-}
-
-
-
-
-
-
-
-
-
-// Parser Puro (Sem DOM) para carregar múltiplas listas no Modo Treino
-function extrairPerguntasDoTexto(md, filePrefix) {
-  const linhas = md.replace(/\r\n/g, '\n').split('\n');
-  let extracted = [];
-  let pAtual = null;
-  let catAtual = 'Geral';
-  let ultOpcao = null;
-
-  linhas.forEach((linha) => {
-    const l = linha.trim();
-    if (!l) return;
-    
-    const matchCat = l.match(/^/);
-    if (matchCat) { catAtual = matchCat[1].trim(); return; }
-
-    if (l.startsWith('id:')) {
-      if (pAtual) salvarPergunta(pAtual, extracted);
-      // Cria ID único prefixando com nome do arquivo
       const rawId = l.replace('id:', '').trim();
       const uniqueId = `${filePrefix.replace('.md','')}-${rawId}`;
       
@@ -405,14 +335,13 @@ window.iniciarModoTreino = async function() {
 
     await Promise.all(promises);
 
-    // Filtrar apenas o que está "vencido" (Due)
     const srsDb = getSRSData();
     const now = Date.now();
     const DAY_MS = 86400000;
 
     const questoesDue = todasAsQuestoes.filter(p => {
       const entry = srsDb[p.id];
-      if (!entry) return true; // Nova pergunta, sempre due
+      if (!entry) return true;
       const dueDate = entry.lastReviewed + (entry.interval * DAY_MS);
       return now >= dueDate;
     });
@@ -423,19 +352,17 @@ window.iniciarModoTreino = async function() {
       return;
     }
 
-    // Limitar sessão a 50 cartas para evitar fadiga
     window.perguntas = embaralhar(questoesDue).slice(0, 50);
     
     if(tituloEl) tituloEl.innerText = `🧠 Treino do Dia (${window.perguntas.length})`;
     
     iniciarJogo('treino');
 
- } catch (err) {
+  } catch (err) {
     console.error("ERRO COMPLETO:", err);
-    alert("Erro Técnico: " + err.message); // This will tell us the real problem
-    // location.reload(); // Commented out so you can see the console
+    alert("Erro Técnico: " + err.message);
+    location.reload(); 
   }
-  
 };
 
 // =======================
@@ -452,12 +379,10 @@ window.iniciarJogo = function (modo) {
   dicasRestantes = 2;
   tempoTotal = modo === 'desafio' ? 15 : 30;
 
-  // Classes de corpo para CSS específico
   document.body.classList.remove('modo-desafio', 'modo-treino');
   if (modo === 'desafio') document.body.classList.add('modo-desafio');
   if (modo === 'treino') document.body.classList.add('modo-treino');
 
-  // Ajustes de UI
   telaSelecaoEl.style.display = 'none';
   if (descricaoEl) descricaoEl.style.display = 'none';
   if (tituloEl) {
@@ -468,7 +393,6 @@ window.iniciarJogo = function (modo) {
   
   quizStage.style.display = 'grid';
   
-  // Exibir timers apenas se NÃO for treino
   if (modo !== 'treino') {
     barraProgressoEl.style.display = 'flex';
     displayTempoEl.style.display = 'block';
@@ -480,7 +404,6 @@ window.iniciarJogo = function (modo) {
     contadorPerguntasEl.style.display = 'none';
   }
 
-  // Se não for treino, embaralha de novo (treino já vem embaralhado e filtrado)
   if (modo !== 'treino') {
     window.perguntas = embaralhar([...window.perguntas]);
   }
@@ -501,8 +424,6 @@ function renderizarBarraProgresso() {
 
 function adicionarNovaPergunta(p, comAnimacao = true) {
   respondido = false;
-  
-  // Timer SRS Start
   srsStartTime = Date.now();
 
   if(contadorPerguntasEl) {
@@ -558,7 +479,6 @@ function adicionarNovaPergunta(p, comAnimacao = true) {
     quizStage.appendChild(novoCard);
   }
 
-  // Timer visual apenas para modos normais
   if(window.modoJogo !== 'treino') {
     iniciarTimer();
     animarBarraAtual();
@@ -596,13 +516,11 @@ function iniciarTimer() {
 window.verificarResposta = function (index, el) {
   if (respondido) return;
   
-  // Cálculo SRS
   const durationSec = (Date.now() - srsStartTime) / 1000;
   
   respondido = true;
   clearInterval(timerInterval);
 
-  // Parar animação da barra (Modos normais)
   if (window.modoJogo !== 'treino') {
     const idAlvo = window.modoJogo === 'desafio' ? 'seg-unico' : `seg-${window.indiceAtual}`;
     const seg = document.getElementById(idAlvo);
@@ -634,16 +552,13 @@ window.verificarResposta = function (index, el) {
       exp.style.animation = 'fadeIn 0.5s ease';
   });
 
-  // == LÓGICA MODO TREINO ==
   if (window.modoJogo === 'treino') {
     const pAtual = window.perguntas[window.indiceAtual];
     processarSRS(pAtual.id, acertou, durationSec);
     card.querySelector('#btn-prox').style.display = 'block';
-    // No modo treino, não computamos pontos nem Game Over
     return;
   }
 
-  // == LÓGICA MODOS NORMAL/DESAFIO ==
   if (acertou) {
     window.acertos++;
     let base = window.modoJogo === 'desafio' ? 15 : 10;
@@ -675,7 +590,6 @@ window.mostrarDica = function (btn, texto) {
 window.transicaoProximaPergunta = function () {
   window.indiceAtual++;
   if (window.indiceAtual >= window.perguntas.length) {
-    // Fim do Jogo
     if (window.modoJogo === 'treino') {
       mostrarFimTreino();
     } else {
