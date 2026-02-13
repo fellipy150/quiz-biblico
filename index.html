@@ -27,14 +27,33 @@
       <img src="assets/img/logo.png" alt="Guardiões da Palavra" class="logo-img">
     </div>
 
-    <h1>Guardiões da Palavra</h1>
+    <h1 id="titulo-quiz">Guardiões da Palavra</h1>
+    
     <p style="text-align: center; font-size: 0.9rem; opacity: 0.9; margin-top: -10px; margin-bottom: 25px;">
       Equipe Verde
     </p>
 
-    <ul id="lista-quizes">
-      <p style="text-align:center;">Carregando...</p>
-    </ul>
+    <div id="tela-selecao">
+      <ul id="lista-quizes">
+        <p style="text-align:center;">Carregando...</p>
+      </ul>
+
+      <div class="card-modo treino" onclick="iniciarModoTreino()">
+        <h3>📚 Modo Treino</h3>
+        <p>Revisão inteligente. Sem tempo, sem pontos. Apenas aprendizado.</p>
+      </div>
+
+      <button class="btn-reset-srs" onclick="resetarMemoriaSRS()">
+        🗑️ Esquecer meu progresso (Reset Treino)
+      </button>
+    </div>
+
+    <div id="quiz-stage" style="display:none;"></div>
+    
+    <div id="descricao-quiz" style="display:none;"></div>
+    <div id="barra-progresso-container" style="display:none;"></div>
+    <div id="display-tempo" style="display:none;"></div>
+    <div id="contador-perguntas" style="display:none;"></div>
   </main>
 
   <button id="btn-abrir-ranking" class="floating-btn" onclick="abrirRanking()" title="Ranking">
@@ -59,8 +78,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
   <script src="assets/js/ranking.js"></script>
   <script src="assets/js/game.js"></script>
   

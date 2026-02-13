@@ -1,5 +1,5 @@
 // =========================================
-//  GAME.JS - Motor de Jogo (Versão 2.6)
+//  GAME.JS - Motor de Jogo (Versão 3.0 - SRS)
 // =========================================
 
 // Elementos do DOM
@@ -25,6 +25,9 @@ let tempoTotal = 30;
 let tempoRestante = 30;
 let timerInterval;
 
+// Variáveis Modo Treino (SRS)
+let srsStartTime = 0;
+
 // =======================
 // UTILITÁRIOS
 // =======================
@@ -43,6 +46,86 @@ function converterMarkdownSimples(texto) {
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/\n/g, '<br>');
+}
+
+// =======================
+// STORAGE & SRS LOGIC (Novas Funções)
+// =======================
+
+function getSRSData() {
+  const data = localStorage.getItem('quizSRSData');
+  return data ? JSON.parse(data) : {};
+}
+
+function saveSRSData(data) {
+  localStorage.setItem('quizSRSData', JSON.stringify(data));
+}
+
+window.resetarMemoriaSRS = function() {
+  if(confirm("Tem certeza? Isso apagará todo o histórico de aprendizado do Modo Treino.")) {
+    localStorage.removeItem('quizSRSData');
+    alert("Memória limpa! O algoritmo recomeçará do zero.");
+    location.reload();
+  }
+};
+
+/**
+ * Algoritmo SM-2 (Spaced Repetition)
+ * @param {string} id - ID único da questão
+ * @param {boolean} isCorrect - Se acertou
+ * @param {number} timeTakenSec - Tempo levado em segundos
+ */
+function processarSRS(id, isCorrect, timeTakenSec) {
+  const db = getSRSData();
+  
+  // Default: Primeira vez vendo a carta
+  let entry = db[id] || { 
+    lastReviewed: 0, 
+    interval: 0, 
+    ef: 2.5, 
+    reps: 0 
+  };
+
+  // 1. Calcular Qualidade (0-5)
+  // 5: Perfeito (<10s), 4: Bom (<20s), 3: Passou (<30s), 2: Difícil (>30s), 0: Errou
+  let quality = 0;
+  if (isCorrect) {
+    if (timeTakenSec < 10) quality = 5;
+    else if (timeTakenSec < 20) quality = 4;
+    else if (timeTakenSec < 30) quality = 3;
+    else quality = 2; 
+  } else {
+    quality = 0;
+  }
+
+  // 2. Atualizar Fator de Facilidade (EF)
+  let newEF = entry.ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+  if (newEF < 1.3) newEF = 1.3;
+
+  // 3. Atualizar Intervalo e Repetições
+  let newInterval = 1;
+  let newReps = entry.reps;
+
+  if (quality < 3) {
+    // Falhou ou achou muito difícil: Reseta
+    newReps = 0;
+    newInterval = 1;
+  } else {
+    newReps++;
+    if (newReps === 1) newInterval = 1;
+    else if (newReps === 2) newInterval = 6;
+    else newInterval = Math.round(entry.interval * newEF);
+  }
+
+  // Salvar
+  db[id] = {
+    lastReviewed: Date.now(),
+    interval: newInterval,
+    ef: parseFloat(newEF.toFixed(2)),
+    reps: newReps
+  };
+
+  saveSRSData(db);
 }
 
 // =======================
@@ -87,9 +170,10 @@ if (quizStage) {
 }
 
 // =======================
-// PARSER DE MARKDOWN (BLOCOS MD)
+// PARSERS (MARKDOWN)
 // =======================
 
+// Parser Original (com efeitos colaterais no DOM para Modo Normal)
 function processarMarkdown(md) {
   const linhas = md.replace(/\r\n/g, '\n').split('\n');
   let descricaoBuffer = '';
@@ -115,7 +199,7 @@ function processarMarkdown(md) {
 
     if (l.startsWith('## ')) return;
 
-    const matchCat = l.match(/^<!--(.*)-->/);
+    const matchCat = l.match(/^/);
     if (matchCat) { categoriaAtual = matchCat[1].trim(); return; }
 
     if (l.startsWith('id:')) {
@@ -165,10 +249,123 @@ function processarMarkdown(md) {
   }
 }
 
+// Parser Puro (Sem DOM) para carregar múltiplas listas no Modo Treino
+function extrairPerguntasDoTexto(md, filePrefix) {
+  const linhas = md.replace(/\r\n/g, '\n').split('\n');
+  let extracted = [];
+  let pAtual = null;
+  let catAtual = 'Geral';
+  let ultOpcao = null;
+
+  linhas.forEach((linha) => {
+    const l = linha.trim();
+    if (!l) return;
+    
+    const matchCat = l.match(/^/);
+    if (matchCat) { catAtual = matchCat[1].trim(); return; }
+
+    if (l.startsWith('id:')) {
+      if (pAtual) salvarPergunta(pAtual, extracted);
+      // Cria ID único prefixando com nome do arquivo
+      const rawId = l.replace('id:', '').trim();
+      const uniqueId = `${filePrefix.replace('.md','')}-${rawId}`;
+      
+      pAtual = {
+        id: uniqueId, 
+        categoria: catAtual,
+        enunciado: '',
+        opcoes: [],
+        dica: null
+      };
+      return;
+    }
+
+    if (l.startsWith('### ') && pAtual) {
+      pAtual.enunciado = l.replace('### ', '').trim();
+      return;
+    }
+
+    if ((l.startsWith('[ ]') || l.startsWith('[x]')) && pAtual) {
+      const isCorrect = l.startsWith('[x]');
+      const text = l.replace(/\[(x| )\]/, '').trim();
+      ultOpcao = { texto: text, correta: isCorrect, explicacao: null };
+      pAtual.opcoes.push(ultOpcao);
+      return;
+    }
+
+    if (l.startsWith('-!') && ultOpcao) {
+      ultOpcao.explicacao = l.replace('-!', '').trim();
+      return;
+    }
+    
+    if (l.startsWith('-#') && pAtual) {
+      pAtual.dica = l.replace('-#', '').trim();
+    }
+  });
+
+  if (pAtual) salvarPergunta(pAtual, extracted);
+  return extracted;
+}
+
 function salvarPergunta(p, lista) {
   const corretas = p.opcoes.filter(opt => opt.correta).length;
   if (corretas === 1) lista.push(p);
 }
+
+// =======================
+// CARREGAMENTO MODO TREINO
+// =======================
+
+window.iniciarModoTreino = async function() {
+  if(tituloEl) tituloEl.innerText = "Carregando Memória...";
+  if(listaEl) listaEl.style.display = 'none';
+  if(telaSelecaoEl) telaSelecaoEl.style.display = 'none';
+
+  try {
+    const resIndex = await fetch('data/quizes/index.json');
+    const quizList = await resIndex.json();
+    
+    let todasAsQuestoes = [];
+    const promises = quizList.map(async (q) => {
+      const res = await fetch(`data/quizes/${q.arquivo}?t=${Date.now()}`); 
+      const text = await res.text();
+      const questoesDoArquivo = extrairPerguntasDoTexto(text, q.arquivo); 
+      todasAsQuestoes = todasAsQuestoes.concat(questoesDoArquivo);
+    });
+
+    await Promise.all(promises);
+
+    // Filtrar apenas o que está "vencido" (Due)
+    const srsDb = getSRSData();
+    const now = Date.now();
+    const DAY_MS = 86400000;
+
+    const questoesDue = todasAsQuestoes.filter(p => {
+      const entry = srsDb[p.id];
+      if (!entry) return true; // Nova pergunta, sempre due
+      const dueDate = entry.lastReviewed + (entry.interval * DAY_MS);
+      return now >= dueDate;
+    });
+
+    if (questoesDue.length === 0) {
+      alert("🎉 Tudo em dia! Você revisou todo o conteúdo pendente. Volte amanhã.");
+      location.reload();
+      return;
+    }
+
+    // Limitar sessão a 50 cartas para evitar fadiga
+    window.perguntas = embaralhar(questoesDue).slice(0, 50);
+    
+    if(tituloEl) tituloEl.innerText = `🧠 Treino do Dia (${window.perguntas.length})`;
+    
+    iniciarJogo('treino');
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao carregar modo treino.");
+    location.reload();
+  }
+};
 
 // =======================
 // CONTROLE DE FLUXO
@@ -184,28 +381,39 @@ window.iniciarJogo = function (modo) {
   dicasRestantes = 2;
   tempoTotal = modo === 'desafio' ? 15 : 30;
 
+  // Classes de corpo para CSS específico
+  document.body.classList.remove('modo-desafio', 'modo-treino');
   if (modo === 'desafio') document.body.classList.add('modo-desafio');
-  else document.body.classList.remove('modo-desafio');
+  if (modo === 'treino') document.body.classList.add('modo-treino');
 
-  // AJUSTE: Mantemos o título visível, apenas escondemos a descrição
+  // Ajustes de UI
   telaSelecaoEl.style.display = 'none';
   if (descricaoEl) descricaoEl.style.display = 'none';
-  
-  // Garantimos que o título continue visível e talvez menor/elegante
   if (tituloEl) {
-      tituloEl.style.display = 'block';
-      tituloEl.style.fontSize = '1.1rem'; // Reduz um pouco o tamanho durante o jogo
-      tituloEl.style.opacity = '0.9';
+    tituloEl.style.display = 'block';
+    tituloEl.style.fontSize = '1.1rem';
+    tituloEl.style.opacity = '0.9';
   }
   
   quizStage.style.display = 'grid';
-  barraProgressoEl.style.display = 'flex';
-  displayTempoEl.style.display = 'block';
-  contadorPerguntasEl.style.display = 'block';
+  
+  // Exibir timers apenas se NÃO for treino
+  if (modo !== 'treino') {
+    barraProgressoEl.style.display = 'flex';
+    displayTempoEl.style.display = 'block';
+    contadorPerguntasEl.style.display = 'block';
+    renderizarBarraProgresso();
+  } else {
+    barraProgressoEl.style.display = 'none';
+    displayTempoEl.style.display = 'none';
+    contadorPerguntasEl.style.display = 'none';
+  }
 
-  window.perguntas = embaralhar([...window.perguntas]);
+  // Se não for treino, embaralha de novo (treino já vem embaralhado e filtrado)
+  if (modo !== 'treino') {
+    window.perguntas = embaralhar([...window.perguntas]);
+  }
 
-  renderizarBarraProgresso();
   adicionarNovaPergunta(window.perguntas[0], false);
 };
 
@@ -222,7 +430,13 @@ function renderizarBarraProgresso() {
 
 function adicionarNovaPergunta(p, comAnimacao = true) {
   respondido = false;
-  contadorPerguntasEl.innerText = `${window.indiceAtual + 1} / ${window.perguntas.length}`;
+  
+  // Timer SRS Start
+  srsStartTime = Date.now();
+
+  if(contadorPerguntasEl) {
+    contadorPerguntasEl.innerText = `${window.indiceAtual + 1} / ${window.perguntas.length}`;
+  }
 
   const opcoesEmb = embaralhar([...p.opcoes]);
   const novoCard = document.createElement('div');
@@ -273,8 +487,11 @@ function adicionarNovaPergunta(p, comAnimacao = true) {
     quizStage.appendChild(novoCard);
   }
 
-  iniciarTimer();
-  animarBarraAtual();
+  // Timer visual apenas para modos normais
+  if(window.modoJogo !== 'treino') {
+    iniciarTimer();
+    animarBarraAtual();
+  }
 }
 
 function animarBarraAtual() {
@@ -307,15 +524,22 @@ function iniciarTimer() {
 
 window.verificarResposta = function (index, el) {
   if (respondido) return;
+  
+  // Cálculo SRS
+  const durationSec = (Date.now() - srsStartTime) / 1000;
+  
   respondido = true;
   clearInterval(timerInterval);
 
-  const idAlvo = window.modoJogo === 'desafio' ? 'seg-unico' : `seg-${window.indiceAtual}`;
-  const seg = document.getElementById(idAlvo);
-  if (seg) {
-      const fill = seg.querySelector('.fill-tempo');
-      fill.style.width = window.getComputedStyle(fill).width;
-      fill.style.transition = 'none';
+  // Parar animação da barra (Modos normais)
+  if (window.modoJogo !== 'treino') {
+    const idAlvo = window.modoJogo === 'desafio' ? 'seg-unico' : `seg-${window.indiceAtual}`;
+    const seg = document.getElementById(idAlvo);
+    if (seg) {
+        const fill = seg.querySelector('.fill-tempo');
+        fill.style.width = window.getComputedStyle(fill).width;
+        fill.style.transition = 'none';
+    }
   }
 
   const card = document.querySelector('.card-quiz.ativo');
@@ -339,6 +563,16 @@ window.verificarResposta = function (index, el) {
       exp.style.animation = 'fadeIn 0.5s ease';
   });
 
+  // == LÓGICA MODO TREINO ==
+  if (window.modoJogo === 'treino') {
+    const pAtual = window.perguntas[window.indiceAtual];
+    processarSRS(pAtual.id, acertou, durationSec);
+    card.querySelector('#btn-prox').style.display = 'block';
+    // No modo treino, não computamos pontos nem Game Over
+    return;
+  }
+
+  // == LÓGICA MODOS NORMAL/DESAFIO ==
   if (acertou) {
     window.acertos++;
     let base = window.modoJogo === 'desafio' ? 15 : 10;
@@ -350,7 +584,11 @@ window.verificarResposta = function (index, el) {
     return;
   }
 
-  if (window.modoJogo === 'normal' && seg) seg.classList.add(acertou ? 'correto' : 'errado');
+  if (window.modoJogo === 'normal') {
+    const seg = document.getElementById(`seg-${window.indiceAtual}`);
+    if (seg) seg.classList.add(acertou ? 'correto' : 'errado');
+  }
+  
   card.querySelector('#btn-prox').style.display = 'block';
 };
 
@@ -365,8 +603,16 @@ window.mostrarDica = function (btn, texto) {
 
 window.transicaoProximaPergunta = function () {
   window.indiceAtual++;
-  if (window.indiceAtual >= window.perguntas.length) mostrarResultadoFinal();
-  else adicionarNovaPergunta(window.perguntas[window.indiceAtual], true);
+  if (window.indiceAtual >= window.perguntas.length) {
+    // Fim do Jogo
+    if (window.modoJogo === 'treino') {
+      mostrarFimTreino();
+    } else {
+      mostrarResultadoFinal();
+    }
+  } else {
+    adicionarNovaPergunta(window.perguntas[window.indiceAtual], true);
+  }
 };
 
 function gameOverDesafio(motivo) {
@@ -375,6 +621,17 @@ function gameOverDesafio(motivo) {
   displayTempoEl.style.display = 'none';
   contadorPerguntasEl.style.display = 'none';
   barraProgressoEl.style.display = 'none';
+}
+
+function mostrarFimTreino() {
+  if (tituloEl) tituloEl.style.fontSize = '1.3rem';
+  quizStage.innerHTML = `
+    <div class="card-quiz ativo" style="text-align:center;">
+      <h2 style="color:#4f46e5;">✅ Treino Concluído!</h2>
+      <p style="margin:20px 0; line-height:1.5;">Você revisou todas as cartas pendentes por agora. O algoritmo de repetição espaçada calculará quando você deve ver estas questões novamente.</p>
+      <button onclick="location.reload()" style="background:#4f46e5; color:white; padding:15px; width:100%; border:none; border-radius:12px; font-weight:bold; cursor:pointer; font-size:1.1rem; margin-top:10px;">Voltar ao Menu</button>
+    </div>`;
+  document.body.classList.remove('modo-treino');
 }
 
 function mostrarResultadoFinal() {
