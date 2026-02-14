@@ -1,394 +1,365 @@
 // =========================================
-//  GAME CONTROLLER (DEBUG VERSION)
+//  GAME CONTROLLER (Final Production Version)
 // =========================================
-console.log("🚀 [GAME] 1. Arquivo game.js começou a ser lido.");
-
-try {
-    // Tenta importar. Se falhar aqui, o erro será silencioso ou crítico no console do navegador.
-    // Não tem como dar try-catch em import estático (ESM), mas saberemos se passou daqui pelo log abaixo.
-    var Engine = await import('./engine.js'); // Usando dynamic import para poder pegar erro se quiser, ou mantenha estatico
-    // Voltando para estático para manter padrão Vite, mas assumindo que funcionou se o log "Imports OK" aparecer.
-} catch (e) {
-    console.error("❌ [GAME] CRÍTICO: Falha ao importar dependências ou sintaxe inválida!", e);
-}
-
-import { embaralhar, converterMarkdownSimples, parseMarkdownQuiz, extrairPerguntasMass } from './engine.js';
+import { embaralhar, parseMarkdownQuiz, extrairPerguntasMass } from './engine.js';
 import { getSRSData, processarSRS, resetarMemoriaSRS } from './srs.js';
 
-console.log("✅ [GAME] 2. Imports concluídos com sucesso.");
-
-// --- Utilitário de Caminho ---
+// --- Utilitário para caminhos ---
 const getAssetPath = (path) => {
-    try {
-        const base = import.meta.env.BASE_URL;
-        const fullPath = `${base}/${path}`.replace(/\/+/g, '/');
-        // console.log(`🔍 [GAME] Gerando caminho asset: ${fullPath}`); // Descomente se quiser muito detalhe
-        return fullPath;
-    } catch (e) {
-        console.error("❌ [GAME] Erro ao gerar caminho do asset:", e);
-        return path;
-    }
+  try {
+    const base = import.meta.env.BASE_URL || '/';
+    return `${base}/${path}`.replace(/\/+/g, '/');
+  } catch (e) {
+    console.error("Erro ao resolver caminho de asset:", e);
+    return path;
+  }
 };
 
-// --- Cache de Elementos DOM com Verificação ---
+// --- Cache de Elementos DOM com Erro Descritivo ---
 const getEl = (id) => {
-    const el = document.getElementById(id);
-    if (!el) console.warn(`⚠️ [GAME] Elemento DOM não encontrado: #${id}`);
-    return el;
+  const el = document.getElementById(id);
+  if (!el) console.warn(`Elemento crítico não encontrado no DOM: #${id}`);
+  return el;
 };
 
 const els = {
-    lista: getEl('lista-quizes'),
-    stage: getEl('quiz-stage'),
-    progresso: getEl('barra-progresso-container'),
-    titulo: getEl('titulo-quiz'),
-    descricao: getEl('descricao-quiz'),
-    tempo: getEl('display-tempo'),
-    contador: getEl('contador-perguntas'),
-    selecao: getEl('tela-selecao'),
-    confete: getEl('canvas-confete')
+  lista: getEl('lista-quizes'),
+  stage: getEl('quiz-stage'),
+  progresso: getEl('barra-progresso-container'),
+  titulo: getEl('titulo-quiz'),
+  descricao: getEl('descricao-quiz'),
+  tempo: getEl('display-tempo'),
+  contador: getEl('contador-perguntas'),
+  selecao: getEl('tela-selecao'),
+  confete: getEl('canvas-confete')
 };
 
-// --- Estado ---
+// --- Estado Global ---
 const state = {
-    perguntas: [],
-    indiceAtual: 0,
-    acertos: 0,
-    pontuacaoTotal: 0,
-    modoJogo: null,
-    respondido: false,
-    dicasRestantes: 2,
-    tempoTotal: 30,
-    tempoRestante: 30,
-    timerInterval: null,
-    srsStartTime: 0
+  perguntas: [],
+  indiceAtual: 0,
+  acertos: 0,
+  pontuacaoTotal: 0,
+  modoJogo: null, 
+  respondido: false,
+  dicasRestantes: 2,
+  tempoTotal: 30,
+  tempoRestante: 30,
+  timerInterval: null,
+  srsStartTime: 0
 };
 
 // ============================================
-// 🚨 EXPOSIÇÃO GLOBAL (Onde costuma dar erro)
+// 1. EXPOSIÇÃO GLOBAL
 // ============================================
-console.log("🔄 [GAME] 3. Tentando expor funções para o window...");
-
-try {
-    // Definindo as funções no window explicitamente
-    window.iniciarJogo = function(modo) {
-        console.log(`🖱️ [CLICK] iniciarJogo chamado. Modo: ${modo}`);
-        iniciarJogoInternal(modo);
-    };
-
-    window.iniciarModoTreino = function() {
-        console.log("🖱️ [CLICK] iniciarModoTreino chamado.");
-        iniciarModoTreinoInternal();
-    };
-
-    window.verificarResposta = function(index, el) {
-        // console.log("🖱️ [CLICK] verificarResposta chamado.");
-        verificarRespostaInternal(index, el);
-    };
-
-    window.mostrarDica = function(btn, texto) {
-        console.log("🖱️ [CLICK] mostrarDica chamado.");
-        mostrarDicaInternal(btn, texto);
-    };
-
-    window.transicaoProximaPergunta = function() {
-        console.log("🖱️ [CLICK] transicaoProximaPergunta chamado.");
-        transicaoProximaPerguntaInternal();
-    };
-
-    window.resetarMemoriaSRS = resetarMemoriaSRS;
-
-    console.log("✅ [GAME] 4. Funções globais registradas com sucesso! (window.iniciarJogo existe)");
-} catch (e) {
-    console.error("❌ [GAME] CRÍTICO: Erro ao expor funções no window:", e);
-}
+window.iniciarJogo = (modo) => iniciarJogoInternal(modo);
+window.iniciarModoTreino = () => iniciarModoTreinoInternal();
+window.verificarResposta = (idx, el) => verificarRespostaInternal(idx, el);
+window.mostrarDica = (btn, txt) => mostrarDicaInternal(btn, txt);
+window.transicaoProximaPergunta = () => transicaoProximaPerguntaInternal();
+window.resetarMemoriaSRS = resetarMemoriaSRS;
 
 // =======================
-// INICIALIZAÇÃO
+// 2. INICIALIZAÇÃO
 // =======================
-
 export function init() {
-    console.log("🚀 [GAME] 5. Executando init()...");
-    try {
-        carregarListaQuizes();
-        verificarParametrosURL();
-    } catch (e) {
-        console.error("❌ [GAME] Erro dentro de init():", e);
-    }
+  try {
+    console.log("🕹️ Inicializando Engine do Jogo...");
+    carregarListaQuizes();
+    verificarParametrosURL();
+  } catch (error) {
+    console.error("Falha crítica na inicialização:", error);
+  }
 }
 
 function carregarListaQuizes() {
-    if (!els.lista) {
-        console.warn("⚠️ [GAME] Abortando carregarListaQuizes: Elemento lista não existe.");
-        return;
-    }
+  if (!els.lista) return;
 
-    const url = getAssetPath('quizes/index.json');
-    console.log(`📡 [GAME] Fetching lista de quizes: ${url}`);
-
-    fetch(url)
-        .then(res => {
-            if (!res.ok) throw new Error(`Status ${res.status}`);
-            return res.json();
-        })
-        .then(dados => {
-            console.log("✅ [GAME] Lista de quizes carregada:", dados);
-            els.lista.innerHTML = dados
-                .map(q => `<li><a href="quiz.html?id=${q.arquivo}">${q.titulo}</a></li>`)
-                .join('');
-        })
-        .catch(err => {
-            console.error("❌ [GAME] Falha no fetch da lista:", err);
-            els.lista.innerHTML = '<p style="text-align:center;">Erro ao carregar lista (ver console).</p>';
-        });
+  const path = getAssetPath('quizes/index.json');
+  fetch(path)
+    .then(res => {
+      if (!res.ok) throw new Error(`Falha ao carregar index.json (Status: ${res.status})`);
+      return res.json();
+    })
+    .then(dados => {
+      els.lista.innerHTML = dados
+        .map(q => `<li><a href="quiz.html?id=${q.arquivo}">${q.titulo}</a></li>`)
+        .join('');
+    })
+    .catch(err => {
+      console.error("Erro na lista de quizes:", err);
+      els.lista.innerHTML = `<div class="error-msg">⚠️ Erro ao carregar quizes: ${err.message}</div>`;
+    });
 }
 
 function verificarParametrosURL() {
-    try {
-        if (!els.stage) return;
-        const params = new URLSearchParams(window.location.search);
-        const idQuiz = params.get('id');
+  if (!els.stage) return;
+  const params = new URLSearchParams(window.location.search);
+  const idQuiz = params.get('id');
 
-        if (idQuiz) {
-            console.log(`🔍 [GAME] ID detectado na URL: ${idQuiz}`);
-            const urlQuiz = getAssetPath(`quizes/${idQuiz}.md`);
-            
-            fetch(urlQuiz)
-                .then(res => {
-                    if (!res.ok) throw new Error(`Quiz 404: ${urlQuiz}`);
-                    return res.text();
-                })
-                .then(text => {
-                    console.log("✅ [GAME] Markdown baixado. Iniciando parse...");
-                    const dados = parseMarkdownQuiz(text);
-                    
-                    if (!dados || !dados.perguntas || dados.perguntas.length === 0) {
-                        throw new Error("Parser retornou 0 perguntas.");
-                    }
+  if (idQuiz) {
+    const quizPath = getAssetPath(`quizes/${idQuiz}.md`);
+    fetch(quizPath)
+      .then(res => {
+        if (!res.ok) throw new Error(`Arquivo de quiz "${idQuiz}.md" não encontrado em ${quizPath}`);
+        return res.text();
+      })
+      .then(text => {
+        const dados = parseMarkdownQuiz(text);
+        if (!dados || !dados.perguntas.length) throw new Error("O arquivo Markdown está vazio ou mal formatado.");
 
-                    if (els.titulo) els.titulo.innerText = dados.titulo || 'Quiz';
-                    if (els.descricao && dados.descricao) {
-                        els.descricao.innerHTML = dados.descricao;
-                        els.descricao.style.display = 'block';
-                    }
-
-                    state.perguntas = dados.perguntas;
-                    console.log(`✅ [GAME] ${state.perguntas.length} perguntas carregadas no State.`);
-
-                    if(els.selecao) els.selecao.style.display = 'flex';
-                    if(els.stage) els.stage.style.display = 'none';
-                })
-                .catch(err => {
-                    console.error("❌ [GAME] Erro ao carregar/parsear Quiz:", err);
-                    if (els.titulo) els.titulo.innerText = "Erro ao carregar";
-                    els.stage.innerHTML = `<p style="text-align:center; color:red">Erro: ${err.message}</p>`;
-                    els.stage.style.display = 'block';
-                });
+        if (els.titulo) els.titulo.innerText = dados.titulo || 'Quiz';
+        if (els.descricao && dados.descricao) {
+          els.descricao.innerHTML = dados.descricao;
+          els.descricao.style.display = 'block';
         }
-    } catch (e) {
-        console.error("❌ [GAME] Erro fatal em verificarParametrosURL:", e);
-    }
+
+        state.perguntas = dados.perguntas;
+        if(els.selecao) els.selecao.style.display = 'flex';
+        if(els.stage) els.stage.style.display = 'none';
+      })
+      .catch(err => {
+        console.error("Erro ao processar quiz da URL:", err);
+        mostrarErroNoPalco(`Erro no carregamento: ${err.message}`);
+      });
+  }
 }
 
 // =======================
-// LÓGICA INTERNA (Renomeada para evitar conflito)
+// 3. LÓGICA DO JOGO
 // =======================
 
 async function iniciarModoTreinoInternal() {
-    console.log("🏋️ [GAME] Iniciando lógica Modo Treino...");
+  try {
     if(els.titulo) els.titulo.innerText = "Carregando Memória...";
-    if(els.lista) els.lista.style.display = 'none';
     if(els.selecao) els.selecao.style.display = 'none';
 
-    try {
-        const urlIndex = getAssetPath('quizes/index.json');
-        const resIndex = await fetch(urlIndex);
-        const quizList = await resIndex.json();
-        
-        let todasAsQuestoes = [];
-        
-        console.log(`📦 [GAME] Baixando ${quizList.length} arquivos para o treino...`);
+    const resIndex = await fetch(getAssetPath('quizes/index.json'));
+    if(!resIndex.ok) throw new Error("Não foi possível acessar a lista de quizes para o treino.");
+    
+    const quizList = await resIndex.json();
+    let todasAsQuestoes = [];
+    
+    const promises = quizList.map(async (q) => {
+      try {
+        const res = await fetch(getAssetPath(`quizes/${q.arquivo}.md?t=${Date.now()}`)); 
+        if(!res.ok) throw new Error(`Arquivo ${q.arquivo}.md falhou.`);
+        const text = await res.text();
+        return extrairPerguntasMass(text, q.arquivo); 
+      } catch (e) {
+        console.warn(`Pulando arquivo ${q.arquivo} devido a erro:`, e);
+        return [];
+      }
+    });
 
-        const promises = quizList.map(async (q) => {
-            const urlMd = getAssetPath(`quizes/${q.arquivo}.md?t=${Date.now()}`);
-            const res = await fetch(urlMd); 
-            if(!res.ok) {
-                console.warn(`⚠️ [GAME] Falha ao baixar ${q.arquivo} para treino.`);
-                return [];
-            }
-            const text = await res.text();
-            return extrairPerguntasMass(text, q.arquivo); 
-        });
+    const resultadosArrays = await Promise.all(promises);
+    resultadosArrays.forEach(arr => todasAsQuestoes.push(...arr));
 
-        const resultadosArrays = await Promise.all(promises);
-        resultadosArrays.forEach(arr => todasAsQuestoes.push(...arr));
+    const srsDb = getSRSData();
+    const now = Date.now();
+    const DAY_MS = 86400000;
 
-        console.log(`📚 [GAME] Total de questões parseadas: ${todasAsQuestoes.length}`);
+    const questoesDue = todasAsQuestoes.filter(p => {
+      const entry = srsDb[p.id];
+      if (!entry) return true; 
+      return now >= entry.lastReviewed + (entry.interval * DAY_MS);
+    });
 
-        const srsDb = getSRSData();
-        const now = Date.now();
-        const DAY_MS = 86400000;
-
-        const questoesDue = todasAsQuestoes.filter(p => {
-            const entry = srsDb[p.id];
-            if (!entry) return true;
-            return now >= entry.lastReviewed + (entry.interval * DAY_MS);
-        });
-
-        console.log(`📅 [GAME] Questões pendentes (Due): ${questoesDue.length}`);
-
-        if (questoesDue.length === 0) {
-            alert("🎉 Tudo em dia! Volte amanhã.");
-            location.reload();
-            return;
-        }
-
-        state.perguntas = embaralhar(questoesDue).slice(0, 50);
-        iniciarJogoInternal('treino');
-
-    } catch (err) {
-        console.error("❌ [GAME] ERRO FATAL NO MODO TREINO:", err);
-        alert("Erro ao iniciar treino. Veja o console.");
-        location.reload(); 
+    if (questoesDue.length === 0) {
+      alert("🎉 Tudo em dia! Você revisou todo o conteúdo pendente.");
+      window.location.href = 'index.html';
+      return;
     }
+
+    state.perguntas = embaralhar(questoesDue).slice(0, 50);
+    iniciarJogoInternal('treino');
+
+  } catch (err) {
+    console.error("ERRO CRÍTICO NO MODO TREINO:", err);
+    alert(`Erro ao iniciar treino: ${err.message}`);
+    location.reload();
+  }
 }
 
 function iniciarJogoInternal(modo) {
-    try {
-        console.log(`🎮 [GAME] Configurando jogo para modo: ${modo}`);
-        state.modoJogo = modo;
-        state.indiceAtual = 0;
-        state.acertos = 0;
-        state.pontuacaoTotal = 0;
-        
-        // Expondo pontuação para o ranking
-        window.pontuacaoTotal = 0;
-        window.modoJogo = modo;
+  try {
+    if (!state.perguntas.length) throw new Error("Nenhuma pergunta carregada no estado.");
 
-        if(els.selecao) els.selecao.style.display = 'none';
-        if(els.stage) els.stage.style.display = 'grid';
-        if(els.titulo) els.titulo.style.display = 'block';
+    state.modoJogo = modo;
+    state.indiceAtual = 0;
+    state.acertos = 0;
+    state.pontuacaoTotal = 0;
+    state.dicasRestantes = 2;
+    state.tempoTotal = modo === 'desafio' ? 15 : 30;
 
-        if (state.perguntas.length === 0) {
-            throw new Error("Array de perguntas está vazio ao tentar iniciar jogo.");
-        }
-        
-        adicionarNovaPergunta(state.perguntas[0], false);
-    } catch (e) {
-        console.error("❌ [GAME] Erro em iniciarJogoInternal:", e);
-        alert("Erro ao iniciar a partida.");
+    window.pontuacaoTotal = 0;
+    window.modoJogo = modo;
+
+    if(els.selecao) els.selecao.style.display = 'none';
+    if(els.descricao) els.descricao.style.display = 'none';
+    if(els.stage) els.stage.style.display = 'grid';
+
+    if (modo !== 'treino') {
+      if(els.progresso) els.progresso.style.display = 'flex';
+      if(els.tempo) els.tempo.style.display = 'block';
+      if(els.contador) els.contador.style.display = 'block';
+      renderizarBarraProgresso();
     }
+
+    adicionarNovaPergunta(state.perguntas[0]);
+  } catch (error) {
+    console.error("Erro ao iniciar partida:", error);
+    mostrarErroNoPalco(`Não foi possível iniciar o jogo: ${error.message}`);
+  }
 }
 
-function adicionarNovaPergunta(p, comAnimacao) {
-    try {
-        if (!p) throw new Error("Objeto pergunta inválido/undefined");
+function adicionarNovaPergunta(p) {
+  try {
+    if (!p) throw new Error("Pergunta inválida ou inexistente.");
+    
+    state.respondido = false;
+    state.srsStartTime = Date.now();
 
-        state.respondido = false;
-        state.srsStartTime = Date.now();
-        
-        if(els.contador) els.contador.innerText = `${state.indiceAtual + 1} / ${state.perguntas.length}`;
+    if(els.contador) els.contador.innerText = `${state.indiceAtual + 1} / ${state.perguntas.length}`;
+    if(els.titulo && state.modoJogo === 'treino') els.titulo.innerText = `🧠 Treino (${state.indiceAtual + 1}/${state.perguntas.length})`;
 
-        const opcoesEmb = embaralhar([...p.opcoes]);
-        
-        // Criação do HTML
-        const novoCard = document.createElement('div');
-        novoCard.className = 'card-quiz ativo';
-        novoCard.innerHTML = `
-            <div class="pergunta">${p.enunciado}</div>
-            <div class="lista-opcoes">
-            ${opcoesEmb.map((op, i) => `
-                <div class="opcao" data-is-correct="${op.correta}" onclick="window.verificarResposta(${i}, this)">
-                ${op.texto}
-                </div>
-            `).join('')}
-            </div>
-            <div class="area-dica-container">
-                ${p.dica ? `<button class="btn-dica-minimal" onclick="window.mostrarDica(this, '${p.dica.replace(/'/g, "\\'")}')">💡 Dica</button>` : ''}
-                <div class="texto-dica-placeholder"></div>
-            </div>
-            <button id="btn-prox" style="display:none; margin-top:15px; padding:10px; width:100%;" onclick="window.transicaoProximaPergunta()">Próxima ➜</button>
-        `;
+    const opcoesEmb = embaralhar([...p.opcoes]);
+    const novoCard = document.createElement('div');
+    novoCard.className = 'card-quiz ativo';
 
-        if (!els.stage) throw new Error("Stage element missing");
-        els.stage.innerHTML = '';
-        els.stage.appendChild(novoCard);
-        
-        // Timer (Simplificado para debug)
-        if(modo !== 'treino') iniciarTimerDebug();
+    novoCard.innerHTML = `
+      <div class="categoria-label">${p.categoria || 'Geral'}</div>
+      <div class="pergunta">${p.enunciado}</div>
+      <div class="lista-opcoes">
+          ${opcoesEmb.map((op, i) => `
+              <div class="opcao-wrapper">
+                  <div class="opcao" data-is-correct="${op.correta}" onclick="window.verificarResposta(${i}, this)">
+                      ${op.texto}
+                  </div>
+              </div>`).join('')}
+      </div>
+      <div class="area-dica-container">
+          ${p.dica ? `<button class="btn-dica-minimal" onclick="window.mostrarDica(this, '${p.dica.replace(/'/g, "\\'")}')">💡 Dica</button>` : ''}
+          <div class="texto-dica-placeholder"></div>
+      </div>
+      <button id="btn-prox" style="display:none;" onclick="window.transicaoProximaPergunta()">Próxima Questão ➜</button>
+    `;
 
-    } catch (e) {
-        console.error("❌ [GAME] Erro ao renderizar pergunta:", e);
+    if (els.stage) {
+      els.stage.innerHTML = '';
+      els.stage.appendChild(novoCard);
     }
+
+    if (state.modoJogo !== 'treino') {
+      iniciarTimer();
+      animarBarraAtual();
+    }
+  } catch (err) {
+    console.error("Erro ao renderizar pergunta:", err);
+    mostrarErroNoPalco(`Erro visual: ${err.message}`);
+  }
 }
 
-function iniciarTimerDebug() {
-    // Implementação simples para evitar erros de timer agora
-    // console.log("Timer iniciado (mock)");
+// =======================
+// 4. AUXILIARES E UI
+// =======================
+
+function mostrarErroNoPalco(msg) {
+  if (els.stage) {
+    els.stage.innerHTML = `
+      <div class="card-quiz ativo error-border">
+        <h3>❌ Algo deu errado</h3>
+        <p>${msg}</p>
+        <button onclick="location.href='index.html'">Voltar ao Início</button>
+      </div>`;
+    els.stage.style.display = 'block';
+  }
 }
 
 function verificarRespostaInternal(index, el) {
-    try {
-        if (state.respondido) return;
-        state.respondido = true;
-        
-        const acertou = el && el.getAttribute('data-is-correct') === 'true';
-        console.log(`📝 [GAME] Resposta: ${acertou ? 'ACERTOU' : 'ERROU'}`);
+  try {
+    if (state.respondido) return;
+    state.respondido = true;
+    clearInterval(state.timerInterval);
 
-        if (acertou) {
-            el.classList.add('correta');
-            state.acertos++;
-            state.pontuacaoTotal += 10;
-            window.pontuacaoTotal = state.pontuacaoTotal;
-        } else if (el) {
-            el.classList.add('errada');
-        }
+    const durationSec = (Date.now() - state.srsStartTime) / 1000;
+    const card = document.querySelector('.card-quiz.ativo');
+    if(!card) throw new Error("Card ativo não encontrado para validar resposta.");
+    
+    const opcoes = card.querySelectorAll('.opcao');
+    let acertou = false;
 
-        // Mostra botão próxima
-        const btn = document.getElementById('btn-prox');
-        if(btn) btn.style.display = 'block';
+    opcoes.forEach((opt) => {
+      opt.classList.add('bloqueado');
+      const isCorrect = opt.getAttribute('data-is-correct') === 'true';
+      if (isCorrect) {
+        opt.classList.add('correta');
+        if (opt === el) acertou = true;
+      } else if (opt === el) {
+        opt.classList.add('errada');
+      }
+    });
 
-        // SRS Logic se for treino
-        if (state.modoJogo === 'treino') {
-             const duration = (Date.now() - state.srsStartTime) / 1000;
-             const pAtual = state.perguntas[state.indiceAtual];
-             processarSRS(pAtual.id, acertou, duration);
-        }
-
-    } catch (e) {
-        console.error("❌ [GAME] Erro em verificarResposta:", e);
+    if (state.modoJogo === 'treino') {
+      processarSRS(state.perguntas[state.indiceAtual].id, acertou, durationSec);
+    } else {
+      if (acertou) {
+        state.acertos++;
+        let base = state.modoJogo === 'desafio' ? 15 : 10;
+        state.pontuacaoTotal += (base + Math.round(base * (state.tempoRestante / state.tempoTotal)));
+      }
+      if (state.modoJogo === 'normal') {
+        const seg = document.getElementById(`seg-${state.indiceAtual}`);
+        if (seg) seg.classList.add(acertou ? 'correto' : 'errado');
+      }
+      if (state.modoJogo === 'desafio' && !acertou) {
+        setTimeout(() => gameOverDesafio('Você Errou!'), 600);
+        return;
+      }
     }
+
+    const btnProx = card.querySelector('#btn-prox');
+    if(btnProx) btnProx.style.display = 'block';
+  } catch (err) {
+    console.error("Erro na verificação de resposta:", err);
+  }
 }
 
-function mostrarDicaInternal(btn, texto) {
-    try {
-        btn.disabled = true;
-        const area = document.querySelector('.card-quiz.ativo .texto-dica-placeholder');
-        if(area) area.innerHTML = `<div class="box-dica-texto">${texto}</div>`;
-    } catch(e) {
-        console.error("Erro na dica:", e);
-    }
+function iniciarTimer() {
+  try {
+    clearInterval(state.timerInterval);
+    if (!els.tempo) return;
+    
+    state.tempoRestante = state.tempoTotal;
+    els.tempo.innerText = `⏱️ ${state.tempoRestante}s`;
+    
+    state.timerInterval = setInterval(() => {
+      state.tempoRestante--;
+      if (els.tempo) els.tempo.innerText = `⏱️ ${state.tempoRestante}s`;
+      
+      if (state.tempoRestante <= 0) {
+        clearInterval(state.timerInterval);
+        state.modoJogo === 'desafio' ? gameOverDesafio('Tempo Esgotado!') : verificarRespostaInternal(-1, null);
+      }
+    }, 1000);
+  } catch (err) {
+    console.error("Erro no Timer:", err);
+  }
 }
 
+// --- Funções de Transição e Confete (Simplificadas) ---
 function transicaoProximaPerguntaInternal() {
-    try {
-        state.indiceAtual++;
-        if (state.indiceAtual >= state.perguntas.length) {
-            console.log("🏁 [GAME] Fim do Quiz.");
-            els.stage.innerHTML = `
-                <div class="card-quiz ativo" style="text-align:center;">
-                    <h2>Fim!</h2>
-                    <h1>${state.pontuacaoTotal} pts</h1>
-                    <button onclick="location.reload()">Menu</button>
-                </div>
-            `;
-        } else {
-            adicionarNovaPergunta(state.perguntas[state.indiceAtual], true);
-        }
-    } catch (e) {
-        console.error("❌ [GAME] Erro na transição:", e);
+  try {
+    state.indiceAtual++;
+    if (state.indiceAtual >= state.perguntas.length) {
+      state.modoJogo === 'treino' ? mostrarFimTreino() : mostrarResultadoFinal();
+    } else {
+      adicionarNovaPergunta(state.perguntas[state.indiceAtual]);
     }
+  } catch (err) {
+    console.error("Erro na transição:", err);
+  }
 }
 
-// Inicia
+// Inicia automaticamente
 init();
