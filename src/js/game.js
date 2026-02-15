@@ -1,5 +1,5 @@
 // =========================================
-//  GAME CONTROLLER (Versão Final Corrigida)
+//  GAME CONTROLLER (Versão Híbrida Definitiva)
 // =========================================
 import { embaralhar, parseMarkdownQuiz, extrairPerguntasMass } from './engine.js';
 import { getSRSData, processarSRS, resetarMemoriaSRS } from './srs.js';
@@ -14,7 +14,7 @@ const getAssetPath = (path) => {
   }
 };
 
-// --- Cache de Elementos DOM (Silencioso para não poluir console) ---
+// --- Cache de Elementos DOM ---
 const getEl = (id) => document.getElementById(id);
 
 const els = {
@@ -41,11 +41,12 @@ const state = {
   tempoTotal: 30,
   tempoRestante: 30,
   timerInterval: null,
-  srsStartTime: 0
+  srsStartTime: 0,
+  animandoTroca: false // Controle para evitar duplo clique na transição
 };
 
 // ============================================
-// 1. EXPOSIÇÃO GLOBAL
+// 1. EXPOSIÇÃO GLOBAL (Para o HTML acessar)
 // ============================================
 window.iniciarJogo = (modo) => iniciarJogoInternal(modo);
 window.iniciarModoTreino = () => iniciarModoTreinoInternal();
@@ -53,6 +54,7 @@ window.verificarResposta = (idx, el) => verificarRespostaInternal(idx, el);
 window.mostrarDica = (btn, txt) => mostrarDicaInternal(btn, txt);
 window.transicaoProximaPergunta = () => transicaoProximaPerguntaInternal();
 window.resetarMemoriaSRS = resetarMemoriaSRS;
+window.enviarPontuacao = enviarPontuacaoInternal; // Restaurado do Código 1
 
 // =======================
 // 2. INICIALIZAÇÃO
@@ -63,7 +65,6 @@ export function init() {
 }
 
 function carregarListaQuizes() {
-  // Se não tem lista na página (ex: quiz.html), apenas sai sem erro.
   if (!els.lista) return;
 
   fetch(getAssetPath('quizes/index.json'))
@@ -90,6 +91,7 @@ function verificarParametrosURL() {
         return res.text();
       })
       .then(text => {
+        // [MELHORIA] Usa o parser robusto do Código 2
         const dados = parseMarkdownQuiz(text);
         
         if (els.titulo) els.titulo.innerText = dados.titulo || 'Quiz';
@@ -106,7 +108,7 @@ function verificarParametrosURL() {
       .catch(err => {
         console.error(err);
         if (els.titulo) els.titulo.innerText = "Erro ao carregar";
-        els.stage.innerHTML = '<div class="card-quiz error">Erro ao carregar quiz. Verifique a URL.</div>';
+        els.stage.innerHTML = '<div class="card-quiz error">Erro ao carregar quiz. Verifique a URL e o formato do arquivo.</div>';
         els.stage.style.display = 'block';
       });
   }
@@ -117,6 +119,7 @@ function verificarParametrosURL() {
 // =======================
 
 async function iniciarModoTreinoInternal() {
+  // Configuração visual inicial
   if(els.titulo) els.titulo.innerText = "Carregando Memória...";
   if(els.lista) els.lista.style.display = 'none';
   if(els.selecao) els.selecao.style.display = 'none';
@@ -126,6 +129,7 @@ async function iniciarModoTreinoInternal() {
     const quizList = await resIndex.json();
     let todasAsQuestoes = [];
     
+    // Carrega todos os quizes para o modo treino
     const promises = quizList.map(async (q) => {
       try {
         const res = await fetch(getAssetPath(`quizes/${q.arquivo}.md?t=${Date.now()}`)); 
@@ -138,13 +142,14 @@ async function iniciarModoTreinoInternal() {
     const resultadosArrays = await Promise.all(promises);
     resultadosArrays.forEach(arr => todasAsQuestoes.push(...arr));
 
+    // Lógica SRS (Spaced Repetition)
     const srsDb = getSRSData();
     const now = Date.now();
     const DAY_MS = 86400000;
 
     const questoesDue = todasAsQuestoes.filter(p => {
       const entry = srsDb[p.id];
-      if (!entry) return true; 
+      if (!entry) return true; // Nunca vista
       return now >= entry.lastReviewed + (entry.interval * DAY_MS);
     });
 
@@ -173,10 +178,19 @@ function iniciarJogoInternal(modo) {
   state.pontuacaoTotal = 0;
   state.dicasRestantes = 2;
   state.tempoTotal = modo === 'desafio' ? 15 : 30;
+  state.animandoTroca = false;
 
   window.pontuacaoTotal = 0;
   window.modoJogo = modo;
 
+  // [RESTAURADO] Estilização Global do Código 1
+  if (modo === 'desafio') {
+    document.body.classList.add('modo-desafio');
+  } else {
+    document.body.classList.remove('modo-desafio');
+  }
+
+  // Reset UI
   if(els.selecao) els.selecao.style.display = 'none';
   if(els.descricao) els.descricao.style.display = 'none';
   if(els.titulo) els.titulo.style.display = 'block';
@@ -186,7 +200,6 @@ function iniciarJogoInternal(modo) {
     if(els.progresso) els.progresso.style.display = 'flex';
     if(els.tempo) els.tempo.style.display = 'block';
     if(els.contador) els.contador.style.display = 'block';
-    // ✅ FUNÇÃO RECUPERADA
     renderizarBarraProgresso();
   } else {
     if(els.progresso) els.progresso.style.display = 'none';
@@ -195,13 +208,13 @@ function iniciarJogoInternal(modo) {
   }
 
   if(state.perguntas.length > 0) {
-    adicionarNovaPergunta(state.perguntas[0]);
+    // False = primeira pergunta não precisa animar entrada saindo da esquerda
+    adicionarNovaPergunta(state.perguntas[0], false);
   } else {
     alert("Nenhuma pergunta encontrada.");
   }
 }
 
-// ✅ FUNÇÃO RECUPERADA
 function renderizarBarraProgresso() {
   if (!els.progresso) return;
   els.progresso.innerHTML = '';
@@ -214,15 +227,17 @@ function renderizarBarraProgresso() {
   }
 }
 
-function adicionarNovaPergunta(p) {
+// [RESTAURADO] Sistema de animação de transição (Card saindo, Card entrando)
+function adicionarNovaPergunta(p, comAnimacao = true) {
   state.respondido = false;
   state.srsStartTime = Date.now();
+  state.animandoTroca = false;
 
   if(els.contador) els.contador.innerText = `${state.indiceAtual + 1} / ${state.perguntas.length}`;
 
   const opcoesEmb = embaralhar([...p.opcoes]);
   const novoCard = document.createElement('div');
-  novoCard.className = 'card-quiz ativo'; // Adicionado 'ativo' direto para evitar delay visual
+  novoCard.className = 'card-quiz'; // Classe base, sem 'ativo' ainda se for animar
 
   novoCard.innerHTML = `
     <div style="font-size:0.65rem; text-transform:uppercase; opacity:0.5; margin-bottom:4px; font-weight:800; letter-spacing:1px; text-align:center;">
@@ -244,19 +259,33 @@ function adicionarNovaPergunta(p) {
     <button id="btn-prox" style="display:none; margin-top:15px; width:100%; padding:12px;" onclick="window.transicaoProximaPergunta()">Próxima Questão ➜</button>
   `;
 
-  if (els.stage) {
+  // [LÓGICA DE ANIMAÇÃO RESTAURADA]
+  if (comAnimacao && els.stage) {
+    novoCard.classList.add('pre-render-direita');
+    const cardAntigo = els.stage.querySelector('.card-quiz.ativo');
+    
+    els.stage.appendChild(novoCard);
+    void novoCard.offsetWidth; // Força Reflow do CSS
+    
+    if (cardAntigo) {
+      cardAntigo.classList.replace('ativo', 'saindo-esquerda');
+      // Aguarda a animação de saída (aprox 500ms no CSS original)
+      setTimeout(() => cardAntigo.remove(), 500);
+    }
+    
+    novoCard.classList.replace('pre-render-direita', 'ativo');
+  } else {
+    novoCard.classList.add('ativo');
     els.stage.innerHTML = '';
     els.stage.appendChild(novoCard);
   }
 
   if (state.modoJogo !== 'treino') {
     iniciarTimer();
-    // ✅ FUNÇÃO RECUPERADA
     animarBarraAtual();
   }
 }
 
-// ✅ FUNÇÃO RECUPERADA
 function animarBarraAtual() {
   const idAlvo = state.modoJogo === 'desafio' ? 'seg-unico' : `seg-${state.indiceAtual}`;
   const seg = document.getElementById(idAlvo);
@@ -307,7 +336,7 @@ function verificarRespostaInternal(index, el) {
   state.respondido = true;
   clearInterval(state.timerInterval);
 
-  // Trava a animação da barra
+  // Congela a barra de tempo
   if (state.modoJogo !== 'treino') {
     const idAlvo = state.modoJogo === 'desafio' ? 'seg-unico' : `seg-${state.indiceAtual}`;
     const seg = document.getElementById(idAlvo);
@@ -374,6 +403,9 @@ function mostrarDicaInternal(btn, texto) {
 }
 
 function transicaoProximaPerguntaInternal() {
+  if (state.animandoTroca) return;
+  state.animandoTroca = true;
+
   state.indiceAtual++;
   if (state.indiceAtual >= state.perguntas.length) {
     if (state.modoJogo === 'treino') {
@@ -382,18 +414,44 @@ function transicaoProximaPerguntaInternal() {
       mostrarResultadoFinal();
     }
   } else {
-    adicionarNovaPergunta(state.perguntas[state.indiceAtual]);
+    // True para ativar a animação de slide
+    adicionarNovaPergunta(state.perguntas[state.indiceAtual], true);
   }
 }
 
 // =======================
-// 5. TELAS FINAIS (Recuperadas)
+// 5. TELAS FINAIS & SISTEMA DE SALVAMENTO
 // =======================
+
+// [RESTAURADO] Função de envio de pontuação do Código 1
+function enviarPontuacaoInternal() {
+    const input = document.getElementById('input-nome-jogador');
+    if (!input) return;
+    
+    const nome = input.value.trim();
+    if (nome.length < 3) {
+        alert("Por favor, digite um nome com pelo menos 3 letras.");
+        return;
+    }
+
+    // Aqui você implementaria a chamada real ao seu backend/Firebase
+    console.log(`Salvando pontuação: ${nome} - ${state.pontuacaoTotal}pts`);
+    
+    const btn = document.getElementById('btn-salvar-final');
+    if(btn) {
+        btn.innerHTML = "✅ Salvo!";
+        btn.disabled = true;
+        input.disabled = true;
+    }
+    
+    // Feedback visual
+    alert(`Pontuação de ${nome} salva com sucesso!`);
+}
 
 function gameOverDesafio(motivo) {
   if (els.stage) {
       els.stage.innerHTML = `
-        <div class="card-quiz ativo" style="text-align:center; border: 2px solid var(--error);">
+        <div class="card-quiz ativo anime-entrada" style="text-align:center; border: 2px solid var(--error);">
             <h2 style="font-size:3rem;">☠️</h2>
             <h3 style="color:var(--error);">${motivo}</h3>
             <p>Fim de jogo.</p>
@@ -403,44 +461,64 @@ function gameOverDesafio(motivo) {
             <a href="index.html" style="color:#666; text-decoration:none;">Voltar ao Menu</a>
         </div>`;
   }
-  if(els.tempo) els.tempo.style.display = 'none';
-  if(els.contador) els.contador.style.display = 'none';
-  if(els.progresso) els.progresso.style.display = 'none';
+  ocultarHUD();
 }
 
 function mostrarFimTreino() {
   if (els.stage) {
       els.stage.innerHTML = `
-        <div class="card-quiz ativo" style="text-align:center;">
+        <div class="card-quiz ativo anime-entrada" style="text-align:center;">
           <h2 style="color:#4f46e5;">✅ Treino Concluído!</h2>
           <p style="margin:20px 0;">Você revisou todas as cartas pendentes.</p>
           <a href="index.html"><button style="background:#4f46e5; color:white; padding:15px; width:100%; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">Voltar ao Menu</button></a>
         </div>`;
   }
+  ocultarHUD();
 }
 
 function mostrarResultadoFinal() {
   const porcentagem = (state.acertos / state.perguntas.length);
-  const win = porcentagem >= 0.6;
+  // [RESTAURADO] Critério de vitória em 50% (0.5)
+  const win = porcentagem >= 0.5;
   
-  if(els.tempo) els.tempo.style.display = 'none';
-  if(els.contador) els.contador.style.display = 'none';
-  if(els.progresso) els.progresso.style.display = 'none';
+  ocultarHUD();
   
   if (els.stage) {
+      // [RESTAURADO] HTML do Formulário de Salvamento do Código 1
       els.stage.innerHTML = `
-        <div class="card-quiz ativo" style="text-align:center;">
-            <h2>${win ? 'Muito Bem!' : 'Bom Treino!'}</h2>
+        <div class="card-quiz ativo anime-entrada" style="text-align:center;">
+            <h2>${win ? 'Parabéns!' : 'Que pena!'}</h2>
             <div style="font-size: 3.5rem; color: ${win ? 'var(--brand-green)' : 'var(--error)'}; font-weight:800; margin: 15px 0;">
                 ${state.pontuacaoTotal} <span style="font-size:1.5rem">pts</span>
             </div>
-            <p style="font-weight:600;">Acertos: ${state.acertos} / ${state.perguntas.length}</p>
+            <p style="font-weight:600;">Você acertou ${state.acertos} de ${state.perguntas.length} questões</p>
+            
             <hr style="border:0; border-top:1px solid #eee; margin:20px 0;">
-            <button onclick="location.reload()" style="background:var(--brand-green); color:white; padding:12px; width:100%; border:none; border-radius:8px; margin-bottom:10px; cursor:pointer;">Jogar Novamente</button>
-            <a href="index.html"><button style="background:transparent; border:1px solid #ccc; padding:12px; width:100%; border-radius:8px; cursor:pointer;">Menu Principal</button></a>
+            
+            <h3>Salvar no Ranking</h3>
+            <p style="font-size:0.8rem; color:#666;">Apenas letras (acentos permitidos)</p>
+            
+            <input type="text" id="input-nome-jogador" maxlength="10" placeholder="seu nome" 
+                   style="width: 80%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 10px; text-transform: lowercase; text-align: center;" 
+                   oninput="this.value = this.value.toLowerCase().replace(/[^a-zà-úç]/g, '')">
+            
+            <button id="btn-salvar-final" onclick="window.enviarPontuacao()" 
+                    style="background:#2563eb; color:white; padding:15px; width:100%; border:none; border-radius:12px; font-weight:bold; cursor:pointer; font-size:1.1rem; margin-top:10px;">
+                    💾 Salvar Conquista
+            </button>
+            
+            <button onclick="location.reload()" style="background:transparent; border:1px solid #ccc; padding:10px; width:100%; margin-top:10px; border-radius:12px; cursor:pointer;">
+                Voltar ao Menu
+            </button>
         </div>`;
   }
   if (win) dispararConfete();
+}
+
+function ocultarHUD() {
+  if(els.tempo) els.tempo.style.display = 'none';
+  if(els.contador) els.contador.style.display = 'none';
+  if(els.progresso) els.progresso.style.display = 'none';
 }
 
 function dispararConfete() {
@@ -448,10 +526,15 @@ function dispararConfete() {
   const ctx = els.confete.getContext('2d');
   els.confete.width = window.innerWidth;
   els.confete.height = window.innerHeight;
-  const p = Array.from({length:100}, () => ({x:Math.random()*els.confete.width, y:-20, c:'#'+Math.floor(Math.random()*16777215).toString(16), s:2+Math.random()*3}));
+  const p = Array.from({length:120}, () => ({x:Math.random()*els.confete.width, y:-20, c:['#ff0', '#0f0', '#00f', '#f0f', '#0ff', '#fff'][Math.floor(Math.random() * 6)], s:2+Math.random()*3}));
+  
   function draw(){
       ctx.clearRect(0,0,els.confete.width,els.confete.height);
-      p.forEach(k => {ctx.fillStyle=k.c; ctx.fillRect(k.x,k.y+=k.s,5,5); if(k.y>els.confete.height)k.y=-20;});
+      p.forEach(k => {
+        ctx.fillStyle=k.c; 
+        ctx.fillRect(k.x,k.y+=k.s,5,5); 
+        if(k.y>els.confete.height)k.y=-20;
+      });
       if(els.confete.width > 0) requestAnimationFrame(draw);
   }
   draw();
